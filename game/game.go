@@ -1,55 +1,25 @@
-// game defines one instance of the salad bowl being played
 package game
 
 import (
-	"errors"
-	"math/rand"
-)
-
-type Result string
-
-const (
-	GUESSED Result = "GUESSED"
-	SKIPPED Result = "SKIPPED"
-	END     Result = "END"
+	"context"
+	"fmt"
+	"sync"
+	"time"
 )
 
 type Game struct {
-	Words []string
+	Bowl *Bowl
 }
 
-func New() *Game {
+func NewGame(words []string) *Game {
+	b := NewBowl()
+	for _, word := range words {
+		b.AddWord(word)
+	}
+
 	return &Game{
-		Words: []string{},
+		Bowl: b,
 	}
-}
-
-func (g *Game) AddWord(word string) {
-	g.Words = append(g.Words, word)
-}
-
-func (g *Game) GetRandomWord() string {
-	if len(g.Words) == 0 {
-		return ""
-	}
-
-	index := rand.Int() % len(g.Words)
-	word := g.Words[index]
-	return word
-}
-
-func (g *Game) RemoveWord(word string) error {
-	for i := 0; i < len(g.Words); i++ {
-		if g.Words[i] == word {
-			// More efficient way to remove an element: swap it with the last element, then decrease size of slice by one
-			g.Words[i] = g.Words[len(g.Words)-1]
-			g.Words = g.Words[:len(g.Words)-1]
-
-			return nil
-		}
-	}
-
-	return errors.New("word not found")
 }
 
 // PlayRound triggers the main game loop using 2 channels
@@ -58,24 +28,92 @@ func (g *Game) RemoveWord(word string) error {
 //
 // If all words have been pulled, "words" will emit empty strings.
 // Caller is responsible for sending the 'END' result when the round is over.
-func (g *Game) PlayRound(words chan<- string, results <-chan Result) {
+func (g *Game) PlayRound() {
+
+	words := make(chan string)
+	results := make(chan Result)
+
+	ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		Actor(ctx, words, results)
+		wg.Done()
+	}()
+
+	go func() {
+		Dealer(ctx, g.Bowl, words, results)
+		wg.Done()
+	}()
+
+	wg.Wait()
+}
+
+// Dealer pulls words from the bowl, and writes them on the words channel
+// Then, it reads from the results channel before sending the next word
+//
+// Exits when the given context is cancelled, or if the bowl is emptied
+func Dealer(ctx context.Context, bowl *Bowl, words chan<- string, results <-chan Result) {
+	fmt.Println("Starting dealer")
 	defer close(words)
+	for {
+		word := bowl.GetRandomWord()
+		if word == "" {
+			fmt.Println("Bowl Empty. Games Over.")
+			return
+		}
+
+		select {
+		case words <- word: // If actor is not running, then this blocks
+			select {
+			case result := <-results:
+				fmt.Println("Received res: " + result)
+				bowl.RemoveWord(word)
+			case <-ctx.Done():
+				fmt.Println("Dealer received end signal while listening for response to " + word)
+				return
+			}
+
+		case <-ctx.Done():
+			fmt.Println("Dealer received end signal while sending word " + word)
+			return
+		}
+
+	}
+}
+
+// Actor reads from the words channel, and emits results on the results channel (after waiting)
+//
+// Exits when the given context is cancelled, or the empty word is received (signalling bowl is empty)
+func Actor(ctx context.Context, wordCh chan string, results chan<- Result) {
+	fmt.Println("Starting actor")
+	defer close(results)
 
 	for {
-		word := g.GetRandomWord()
-		words <- word
-
-		res, open := <-results
-		if !open {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Actor received end signal while waiting for word")
 			return
-		}
 
-		if res == GUESSED {
-			g.RemoveWord(word)
-		}
+		case word := <-wordCh:
+			if word == "" {
+				fmt.Println("Received empty word. Game is over")
+				return
+			}
 
-		if res == END {
-			return
+			fmt.Println("Received Word: " + word)
+			time.Sleep(time.Duration(time.Second * 3))
+
+			select {
+			case <-ctx.Done():
+				fmt.Println("Actor received end signal while sending result for " + word)
+				return
+			case results <- RESULT_GUESSED:
+				continue
+			}
+
 		}
 	}
 }
