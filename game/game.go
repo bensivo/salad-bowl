@@ -11,11 +11,8 @@ type Game struct {
 	Bowl *Bowl
 }
 
-func NewGame(words []string) *Game {
+func NewGame() *Game {
 	b := NewBowl()
-	for _, word := range words {
-		b.AddWord(word)
-	}
 
 	return &Game{
 		Bowl: b,

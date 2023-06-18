@@ -1,34 +1,36 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
 	"github.com/bensivo/salad-bowl/game"
+	"github.com/bensivo/salad-bowl/gorilla"
+	"github.com/bensivo/salad-bowl/util"
 )
 
 func main() {
-	g := game.NewGame([]string{
-		"apple",
-		"banana",
-		"clementine",
-		"durian",
-		"fig",
-	})
+	util.Init()
 
-	g.PlayRound()
+	instance := game.NewInstance()
 
-	// inputChan := make(chan string, 1)
-	// defer close(inputChan)
+	go gorilla.StartGorillaServer(instance)
 
-	// Reads input from the terminal, and sends them to the channel
-	// go func() {
-	// 	for {
-	// 		in := bufio.NewReader(os.Stdin)
-	// 		result, err := in.ReadString('\n')
-	// 		if err != nil {
-	// 			log.Fatal(err)
-	// 		}
+	waitForSigint()
+}
 
-	// 		inputChan <- result
-	// 	}
-	// }()
+func waitForSigint() {
 
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		<-c
+		wg.Done()
+	}()
+	wg.Wait()
 }
