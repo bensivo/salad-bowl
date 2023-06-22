@@ -1,4 +1,4 @@
-package game
+package instance
 
 // Player represents one device connected to the game server, which
 // sends and receives messages in real-time related to the game logic.

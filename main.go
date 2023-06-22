@@ -6,17 +6,14 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/bensivo/salad-bowl/game"
 	"github.com/bensivo/salad-bowl/gorilla"
-	"github.com/bensivo/salad-bowl/util"
+	"github.com/bensivo/salad-bowl/instance"
 )
 
 func main() {
-	util.Init()
+	i := instance.NewInstance()
 
-	instance := game.NewInstance()
-
-	go gorilla.StartGorillaServer(instance)
+	go gorilla.StartGorillaServer(i)
 
 	waitForSigint()
 }

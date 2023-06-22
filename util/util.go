@@ -2,15 +2,17 @@ package util
 
 import (
 	"math/rand"
+	"time"
 )
 
 var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-var generator *rand.Rand
+var generator *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func Init() {
-	generator = rand.New(rand.NewSource(0)) // Seed with a 0 for deterministic testing
-	// generator = rand.New(rand.NewSource(time.Now().UnixNano()))
+// SeedRand initializes the random number generator with a constant value
+// This makes all the random values deterministic, for easier testing
+func SeedRand(seed int64) {
+	generator = rand.New(rand.NewSource(seed))
 }
 
 func RandStringId() string {

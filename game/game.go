@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+type Result string
+
+const (
+	RESULT_GUESSED Result = "GUESSED"
+	RESULT_SKIPPED Result = "SKIPPED"
+	RESULT_END     Result = "END"
+)
+
 type Game struct {
 	Bowl *Bowl
 }
@@ -48,8 +56,8 @@ func (g *Game) PlayRound() {
 	wg.Wait()
 }
 
-// Dealer pulls words from the bowl, and writes them on the words channel
-// Then, it reads from the results channel before sending the next word
+// Dealer pulls words from the bowl and writes them on the words channel
+// Then, it reads from the results channel
 //
 // Exits when the given context is cancelled, or if the bowl is emptied
 func Dealer(ctx context.Context, bowl *Bowl, words chan<- string, results <-chan Result) {
@@ -103,6 +111,8 @@ func Actor(ctx context.Context, wordCh chan string, results chan<- Result) {
 			fmt.Println("Received Word: " + word)
 			time.Sleep(time.Duration(time.Second * 3))
 
+			// NOTE: this actor just always sends RESULT_GUESSED
+			// In reality this would come from user input
 			select {
 			case <-ctx.Done():
 				fmt.Println("Actor received end signal while sending result for " + word)
