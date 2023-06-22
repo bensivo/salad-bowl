@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/bensivo/salad-bowl/instance"
-	"github.com/bensivo/salad-bowl/instance/adapters"
+	"github.com/bensivo/salad-bowl/hub"
+	"github.com/bensivo/salad-bowl/hub/adapters"
 	"github.com/gorilla/websocket"
 )
 
@@ -16,7 +16,7 @@ var upgrader websocket.Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func StartGorillaServer(instance *instance.Instance) {
+func StartGorillaServer(hub *hub.Hub) {
 	http.HandleFunc("/connect", func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("Incoming connection from %s\n", r.RemoteAddr)
@@ -31,7 +31,7 @@ func StartGorillaServer(instance *instance.Instance) {
 			Conn: conn,
 		}
 
-		instance.HandleNewConnection(playerChannel)
+		hub.HandleNewConnection(playerChannel)
 	})
 
 	http.HandleFunc("/broadcast", func(w http.ResponseWriter, r *http.Request) {
@@ -50,8 +50,27 @@ func StartGorillaServer(instance *instance.Instance) {
 			return
 		}
 
-		fmt.Println("Broadcasting message: ", payload)
-		instance.Broadcast(payload)
+		hub.Broadcast(payload)
+		w.WriteHeader(200)
+	})
+
+	http.HandleFunc("/sendTo", func(w http.ResponseWriter, r *http.Request) {
+		bytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			fmt.Println("Error reading HTTP request body", err)
+			w.WriteHeader(400)
+			return
+		}
+
+		payload := make(map[string]interface{})
+		err = json.Unmarshal(bytes, &payload)
+		if err != nil {
+			fmt.Println("Error parsing HTTP request body", err)
+			w.WriteHeader(400)
+			return
+		}
+
+		hub.SendTo(fmt.Sprintf("%v", payload["ID"]), payload["Message"])
 		w.WriteHeader(200)
 	})
 

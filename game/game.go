@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/bensivo/salad-bowl/hub"
 )
 
 type Result string
@@ -16,15 +18,42 @@ const (
 )
 
 type Game struct {
-	Bowl *Bowl
+	Bowl    *Bowl
+	Hub     *hub.Hub
+	Players []*Player
 }
 
-func NewGame() *Game {
-	b := NewBowl()
+func NewGame(hub *hub.Hub) *Game {
+	bowl := NewBowl()
 
 	return &Game{
-		Bowl: b,
+		Bowl:    bowl,
+		Hub:     hub,
+		Players: []*Player{},
 	}
+}
+
+func (g *Game) Start() {
+	g.Hub.RegisterNewConnectionCallback(func(playerId string) {
+		fmt.Printf("New player with id %s\n", playerId)
+
+		// Send the player's id to them so they know what it is
+		g.Hub.SendTo(playerId, map[string]interface{}{
+			"ID": playerId,
+		})
+
+		player := NewPlayer(playerId)
+		g.Players = append(g.Players, player)
+
+		// Broadcast all PlayerIds to all players
+		playerList := make([]string, len(g.Players))
+		for i := 0; i < len(g.Players); i++ {
+			playerList[i] = g.Players[i].Id
+		}
+		g.Hub.Broadcast(map[string]interface{}{
+			"Players": playerList,
+		})
+	})
 }
 
 // PlayRound triggers the main game loop using 2 channels
