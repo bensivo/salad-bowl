@@ -32,6 +32,7 @@ func TestInstance_HandleNewConnection_CallsCallback(t *testing.T) {
 
 func TestInstance_NewConnection_Send(t *testing.T) {
 	util.SeedRand(0) // Makes generated IDs deterministic
+
 	pc1 := hub.NewMockPlayerChannel(t)
 	pc1.On("OnMessage", mock.Anything).Return()
 	pc1.On("OnDisconnect", mock.Anything).Return()
@@ -58,14 +59,14 @@ func TestInstance_Broadcast_SendsToAllPlayers(t *testing.T) {
 	pc1.On("OnMessage", mock.Anything).Return()
 	pc1.On("OnDisconnect", mock.Anything).Return()
 	pc1.On("Send", mock.Anything).Return(nil)
+
 	pc2 := hub.NewMockPlayerChannel(t)
 	pc2.On("OnMessage", mock.Anything).Return()
 	pc2.On("OnDisconnect", mock.Anything).Return()
 	pc2.On("Send", mock.Anything).Return(nil)
 
-	// Given a new empty hub, with 2 players connected
+	// Given a hub with 2 players connected
 	i := hub.NewHub()
-
 	i.HandleNewConnection(pc1)
 	i.HandleNewConnection(pc2)
 

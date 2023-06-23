@@ -15,6 +15,8 @@ describe('Connect', () => {
             }));
         });
 
+        console.log(getPlayerId(messageCb));
+
         await disconnect(conn);
     })
 
@@ -68,4 +70,14 @@ export async function disconnect(conn: WebSocket): Promise<void> {
     await waitForExpect(() => {
         expect(closeCb).toHaveBeenCalled()
     })
+}
+
+export function getPlayerId(messageCb: jest.Mock): string {
+    for(const call of messageCb.mock.calls) {
+        const body: any = call[0]
+        if (body.event === 'notification.player-id') {
+            return body.payload.playerId
+        }
+    }
+    return '';
 }

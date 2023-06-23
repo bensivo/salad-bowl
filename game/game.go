@@ -18,34 +18,36 @@ const (
 )
 
 type Game struct {
-	Bowl    *Bowl
-	Hub     hub.Hub
-	Players []*Player
+	Bowl          *Bowl
+	Hub           hub.Hub
+	Players       []*Player
+	TeamPlayerIds [][]string
 }
 
 func NewGame(hub hub.Hub) *Game {
 	bowl := NewBowl()
 
+	teams := make([][]string, 2)
+	teams[0] = []string{}
+	teams[1] = []string{}
+
 	return &Game{
-		Bowl:    bowl,
-		Hub:     hub,
-		Players: []*Player{},
+		Bowl:          bowl,
+		Hub:           hub,
+		Players:       []*Player{},
+		TeamPlayerIds: teams, // length 2 array of strings, representing playerIds
 	}
 }
 
 // Start sets up all listeners and callbacks that the game needs during normal running.
 func (g *Game) Start() {
-	g.Hub.OnNewConnection(g.AddPlayer)
-
-	g.Hub.OnMessage(func(playerId string, message hub.Message) {
-		fmt.Printf("Received message from player %s: %v", playerId, message)
-
-	})
+	g.Hub.OnNewConnection(g.HandleNewConnection)
+	g.Hub.OnMessage(g.HandleMessage)
 }
 
-// AddPlayer adds a player to the game by id.
+// HandleNewConnection adds a player to the game by id.
 // It sends that player their welcome message, and then broadcasts the updated player list.
-func (g *Game) AddPlayer(playerId string) {
+func (g *Game) HandleNewConnection(playerId string) {
 	fmt.Printf("New player with id %s\n", playerId)
 
 	// Send the player's id to them so they know what it is
@@ -73,6 +75,78 @@ func (g *Game) AddPlayer(playerId string) {
 		},
 	}
 	g.Hub.Broadcast(playerListMsg)
+
+	teamsMsg := hub.Message{
+		Event: "state.teams",
+		Payload: map[string]interface{}{
+			"teams": g.TeamPlayerIds,
+		},
+	}
+	g.Hub.Broadcast(teamsMsg)
+}
+
+func (g *Game) HandleMessage(playerId string, message hub.Message) {
+	fmt.Printf("Received message from player %s: %v", playerId, message)
+	switch message.Event {
+	case "request.join-team":
+		fmt.Printf("Player %s requesting to join team %d\n", playerId, message.Payload["team"])
+
+		team := int(message.Payload["team"].(float64))
+		requestId := message.Payload["requestId"].(string)
+
+		if team != 0 && team != 1 {
+			g.Hub.SendTo(playerId, hub.Message{
+				Event: "response.join-team",
+				Payload: map[string]interface{}{
+					"requestId":   requestId,
+					"status":      "error",
+					"description": "Cannot join team. Please choose either team 0 or team 1",
+					"team":        team,
+				},
+			})
+			return
+		}
+
+		// Remove player from all teams, so we don't end up with duplicate entries
+		team0 := g.TeamPlayerIds[0]
+		team1 := g.TeamPlayerIds[1]
+		for i, v := range team0 {
+			if v == playerId {
+				fmt.Printf("Removing player %s from team %d\n", playerId, team)
+				team0[i] = team0[len(team0)-1]
+				team0 = team0[:len(team0)-1]
+				g.TeamPlayerIds[0] = team0
+			}
+		}
+		for i, v := range team1 {
+			if v == playerId {
+				fmt.Printf("Removing player %s from team %d\n", playerId, team)
+				team1[i] = team1[len(team1)-1]
+				team1 = team1[:len(team1)-1]
+				g.TeamPlayerIds[1] = team1
+			}
+		}
+
+		g.TeamPlayerIds[team] = append(g.TeamPlayerIds[team], playerId)
+		g.Hub.SendTo(playerId, hub.Message{
+			Event: "response.join-team",
+			Payload: map[string]interface{}{
+				"requestId": requestId,
+				"status":    "success",
+				"team":      team,
+			},
+		})
+
+		g.Hub.Broadcast(hub.Message{
+			Event: "state.teams",
+			Payload: map[string]interface{}{
+				"teams": g.TeamPlayerIds,
+			},
+		})
+
+	default:
+		fmt.Printf("Unknown event %s\n", message.Event)
+	}
 }
 
 // PlayRound triggers the main game loop using 2 channels

@@ -22,16 +22,13 @@ type Hub interface {
 type NewConnectionCallback func(playerId string)
 type PlayerMessageCallback func(playerId string, message Message)
 
-var _ Hub = (*HubImpl)(nil)
-
-// HubImpl manages all communication with player devices.
-//
-// It publishes connection IDs to registered listeners, and exposes methods for sending messages by ID
 type HubImpl struct {
 	PlayerChannels        map[string]PlayerChannel
 	newConnectionCallback NewConnectionCallback
 	playerMessageCallback PlayerMessageCallback
 }
+
+var _ Hub = (*HubImpl)(nil)
 
 func NewHub() *HubImpl {
 	return &HubImpl{
