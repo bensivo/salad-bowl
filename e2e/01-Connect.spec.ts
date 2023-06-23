@@ -15,8 +15,6 @@ describe('Connect', () => {
             }));
         });
 
-        console.log(getPlayerId(messageCb));
-
         await disconnect(conn);
     })
 

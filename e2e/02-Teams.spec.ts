@@ -1,30 +1,14 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, jest, expect } from '@jest/globals';
 import { connect, disconnect, getPlayerId } from './01-Connect.spec';
 import waitForExpect from 'wait-for-expect';
+import { WebSocket } from 'ws';
 
 describe('Teams', () => {
     describe('join team', () => {
         it('should send a success message', async () => {
             const { conn, messageCb } = await connect();
 
-            conn.send(JSON.stringify({
-                event: "request.join-team",
-                payload: {
-                    "requestId": "00000000-0000-0000-0000-000000000000",
-                    "team": 1,
-                }
-            }));
-
-            await waitForExpect(() => {
-                expect(messageCb).toHaveBeenCalledWith({
-                    event: "response.join-team",
-                    payload: {
-                        "requestId": "00000000-0000-0000-0000-000000000000",
-                        "status":"success",
-                        "team": 1,
-                    }
-                });
-            })
+            await joinTeam(conn, messageCb, 1);
 
             await disconnect(conn);
         });
@@ -35,13 +19,7 @@ describe('Teams', () => {
 
             const playerId = getPlayerId(messageCb);
 
-            conn.send(JSON.stringify({
-                event: "request.join-team",
-                payload: {
-                    "requestId": "00000000-0000-0000-0000-000000000000",
-                    "team": 1,
-                }
-            }));
+            await joinTeam(conn, messageCb, 1);
 
             await waitForExpect(() => {
                 expect(messageCb).toHaveBeenCalledWith({
@@ -65,13 +43,7 @@ describe('Teams', () => {
 
             const playerId = getPlayerId(messageCb);
 
-            conn.send(JSON.stringify({
-                event: "request.join-team",
-                payload: {
-                    "requestId": "00000000-0000-0000-0000-000000000000",
-                    "team": 1,
-                }
-            }));
+            await joinTeam(conn, messageCb, 1);
 
             await waitForExpect(() => {
                 expect(messageCb).toHaveBeenCalledWith({
@@ -85,14 +57,7 @@ describe('Teams', () => {
                 });
             })
 
-
-            conn.send(JSON.stringify({
-                event: "request.join-team",
-                payload: {
-                    "requestId": "00000000-0000-0000-0000-000000000000",
-                    "team": 0,
-                }
-            }));
+            await joinTeam(conn, messageCb, 0);
 
             await waitForExpect(() => {
                 expect(messageCb).toHaveBeenCalledWith({
@@ -110,3 +75,24 @@ describe('Teams', () => {
         })
     })
 });
+
+export async function joinTeam(conn: WebSocket, messageCb: jest.Mock, num: number) {
+    conn.send(JSON.stringify({
+        event: "request.join-team",
+        payload: {
+            "requestId": "00000000-0000-0000-0000-000000000000",
+            "team": num,
+        }
+    }));
+
+    await waitForExpect(() => {
+        expect(messageCb).toHaveBeenCalledWith({
+            event: "response.join-team",
+            payload: {
+                "requestId": "00000000-0000-0000-0000-000000000000",
+                "status":"success",
+                "team": num,
+            }
+        });
+    })
+}
