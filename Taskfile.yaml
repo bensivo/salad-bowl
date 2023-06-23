@@ -15,5 +15,6 @@ tasks:
 
   test:
     cmds:
+      - go generate ./...
       - go test ./...
     silent: true

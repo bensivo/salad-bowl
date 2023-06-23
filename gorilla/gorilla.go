@@ -16,7 +16,7 @@ var upgrader websocket.Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func StartGorillaServer(hub *hub.Hub) {
+func StartGorillaServer(hub *hub.HubImpl) {
 	http.HandleFunc("/connect", func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("Incoming connection from %s\n", r.RemoteAddr)

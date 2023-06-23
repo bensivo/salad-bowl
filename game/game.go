@@ -19,11 +19,11 @@ const (
 
 type Game struct {
 	Bowl    *Bowl
-	Hub     *hub.Hub
+	Hub     hub.Hub
 	Players []*Player
 }
 
-func NewGame(hub *hub.Hub) *Game {
+func NewGame(hub hub.Hub) *Game {
 	bowl := NewBowl()
 
 	return &Game{
@@ -33,26 +33,31 @@ func NewGame(hub *hub.Hub) *Game {
 	}
 }
 
+// Start sets up all listeners and callbacks that the game needs during normal running.
 func (g *Game) Start() {
-	g.Hub.RegisterNewConnectionCallback(func(playerId string) {
-		fmt.Printf("New player with id %s\n", playerId)
+	g.Hub.RegisterNewConnectionCallback(g.AddPlayer)
+}
 
-		// Send the player's id to them so they know what it is
-		g.Hub.SendTo(playerId, map[string]interface{}{
-			"ID": playerId,
-		})
+// AddPlayer adds a player to the game by id.
+// It sends that player their welcome message, and then broadcasts the updated player list.
+func (g *Game) AddPlayer(playerId string) {
+	fmt.Printf("New player with id %s\n", playerId)
 
-		player := NewPlayer(playerId)
-		g.Players = append(g.Players, player)
+	// Send the player's id to them so they know what it is
+	g.Hub.SendTo(playerId, map[string]interface{}{
+		"ID": playerId,
+	})
 
-		// Broadcast all PlayerIds to all players
-		playerList := make([]string, len(g.Players))
-		for i := 0; i < len(g.Players); i++ {
-			playerList[i] = g.Players[i].Id
-		}
-		g.Hub.Broadcast(map[string]interface{}{
-			"Players": playerList,
-		})
+	player := NewPlayer(playerId)
+	g.Players = append(g.Players, player)
+
+	// Broadcast all PlayerIds to all players
+	playerList := make([]string, len(g.Players))
+	for i := 0; i < len(g.Players); i++ {
+		playerList[i] = g.Players[i].Id
+	}
+	g.Hub.Broadcast(map[string]interface{}{
+		"Players": playerList,
 	})
 }
 

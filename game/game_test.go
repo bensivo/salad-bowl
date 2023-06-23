@@ -5,47 +5,40 @@ import (
 
 	"github.com/bensivo/salad-bowl/game"
 	"github.com/bensivo/salad-bowl/hub"
-	"github.com/bensivo/salad-bowl/hub/adapters"
-	"github.com/bensivo/salad-bowl/util"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestGame_NewConnection_SendsPlayerIds(t *testing.T) {
-	util.SeedRand(0)
+func TestGame_NewConnection_SendsPlayerId(t *testing.T) {
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+	mockHub.On("Broadcast", mock.Anything).Return(nil)
 
 	// Given a new game
-	hub := hub.NewHub()
-	game := game.NewGame(hub)
+	game := game.NewGame(mockHub)
 
-	game.Start()
-
-	// When a new player channel connects to the hub
-	pc := adapters.NewMockPlayerChannel()
-	hub.HandleNewConnection(pc)
+	// When a player is added
+	game.AddPlayer("000-000")
 
 	// Then the player receives an ID
-	assert.Contains(t, pc.Sent, map[string]interface{}{
-		"ID": "SSN-9QH",
+	mockHub.AssertCalled(t, "SendTo", "000-000", map[string]interface{}{
+		"ID": "000-000",
 	})
 }
 
 func TestGame_NewConnection_BroadcastsPlayerList(t *testing.T) {
-	util.SeedRand(0)
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+	mockHub.On("Broadcast", mock.Anything).Return(nil)
 
 	// Given a new game
-	hub := hub.NewHub()
-	game := game.NewGame(hub)
+	game := game.NewGame(mockHub)
 
-	game.Start()
+	// When 2 players are added
+	game.AddPlayer("000-000")
+	game.AddPlayer("111-111")
 
-	// When a new player channel connects to the hub
-	pc1 := adapters.NewMockPlayerChannel()
-	hub.HandleNewConnection(pc1)
-	pc2 := adapters.NewMockPlayerChannel()
-	hub.HandleNewConnection(pc2)
-
-	// Then the player receives an ID
-	assert.Contains(t, pc1.Sent, map[string]interface{}{
-		"Players": []string{"SSN-9QH", "RAM-LLM"},
+	// Then the player list is sent out
+	mockHub.AssertCalled(t, "Broadcast", map[string]interface{}{
+		"Players": []string{"000-000", "111-111"},
 	})
 }
