@@ -13,8 +13,12 @@ tasks:
       - docker-compose down
     silent: true
 
-  test:
+  generate:
     cmds:
       - go generate ./...
+    silent: true
+
+  test:
+    cmds:
       - go test ./...
     silent: true
