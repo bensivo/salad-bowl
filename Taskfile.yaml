@@ -6,6 +6,13 @@ tasks:
       - go run main.go
     silent: true
 
+  e2e:
+    cmds:
+      - docker-compose up --build -d
+      - cd e2e && npm run test
+      - docker-compose down
+    silent: true
+
   test:
     cmds:
       - go test ./...
