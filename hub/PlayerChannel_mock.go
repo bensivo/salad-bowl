@@ -17,6 +17,39 @@ func (_m *MockPlayerChannel) EXPECT() *MockPlayerChannel_Expecter {
 	return &MockPlayerChannel_Expecter{mock: &_m.Mock}
 }
 
+// OnDisconnect provides a mock function with given fields: cb
+func (_m *MockPlayerChannel) OnDisconnect(cb DisconnectCallback) {
+	_m.Called(cb)
+}
+
+// MockPlayerChannel_OnDisconnect_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnDisconnect'
+type MockPlayerChannel_OnDisconnect_Call struct {
+	*mock.Call
+}
+
+// OnDisconnect is a helper method to define mock.On call
+//   - cb DisconnectCallback
+func (_e *MockPlayerChannel_Expecter) OnDisconnect(cb interface{}) *MockPlayerChannel_OnDisconnect_Call {
+	return &MockPlayerChannel_OnDisconnect_Call{Call: _e.mock.On("OnDisconnect", cb)}
+}
+
+func (_c *MockPlayerChannel_OnDisconnect_Call) Run(run func(cb DisconnectCallback)) *MockPlayerChannel_OnDisconnect_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(DisconnectCallback))
+	})
+	return _c
+}
+
+func (_c *MockPlayerChannel_OnDisconnect_Call) Return() *MockPlayerChannel_OnDisconnect_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockPlayerChannel_OnDisconnect_Call) RunAndReturn(run func(DisconnectCallback)) *MockPlayerChannel_OnDisconnect_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OnMessage provides a mock function with given fields: cb
 func (_m *MockPlayerChannel) OnMessage(cb MessageCallback) {
 	_m.Called(cb)

@@ -35,7 +35,12 @@ func NewGame(hub hub.Hub) *Game {
 
 // Start sets up all listeners and callbacks that the game needs during normal running.
 func (g *Game) Start() {
-	g.Hub.RegisterNewConnectionCallback(g.AddPlayer)
+	g.Hub.OnNewConnection(g.AddPlayer)
+
+	g.Hub.OnMessage(func(playerId string, message hub.Message) {
+		fmt.Printf("Received message from player %s: %v", playerId, message)
+
+	})
 }
 
 // AddPlayer adds a player to the game by id.
@@ -44,9 +49,13 @@ func (g *Game) AddPlayer(playerId string) {
 	fmt.Printf("New player with id %s\n", playerId)
 
 	// Send the player's id to them so they know what it is
-	g.Hub.SendTo(playerId, map[string]interface{}{
-		"ID": playerId,
-	})
+	welcomeMsg := hub.Message{
+		Event: "notification.player-id",
+		Payload: map[string]interface{}{
+			"playerId": playerId,
+		},
+	}
+	g.Hub.SendTo(playerId, welcomeMsg)
 
 	player := NewPlayer(playerId)
 	g.Players = append(g.Players, player)
@@ -56,9 +65,14 @@ func (g *Game) AddPlayer(playerId string) {
 	for i := 0; i < len(g.Players); i++ {
 		playerList[i] = g.Players[i].Id
 	}
-	g.Hub.Broadcast(map[string]interface{}{
-		"Players": playerList,
-	})
+
+	playerListMsg := hub.Message{
+		Event: "state.player-list",
+		Payload: map[string]interface{}{
+			"players": playerList,
+		},
+	}
+	g.Hub.Broadcast(playerListMsg)
 }
 
 // PlayRound triggers the main game loop using 2 channels

@@ -8,7 +8,10 @@ describe('Connect', () => {
 
         await waitForExpect(() => {
             expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({
-                "ID": expect.anything()
+                event: 'notification.player-id',
+                payload: {
+                    playerId: expect.anything(),
+                }
             }));
         });
 
@@ -20,7 +23,10 @@ describe('Connect', () => {
 
         await waitForExpect(() => {
             expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({
-                "Players": expect.anything()
+                event: 'state.player-list',
+                payload: {
+                    players: expect.anything(),
+                }
             }));
         });
 
@@ -28,7 +34,7 @@ describe('Connect', () => {
     })
 })
 
-async function connect(): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
+export async function connect(): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
     let conn: WebSocket
     const openCb = jest.fn();
     const messageCb = jest.fn();
@@ -49,10 +55,14 @@ async function connect(): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
     }
 }
 
-async function disconnect(conn: WebSocket): Promise<void> {
+export async function disconnect(conn: WebSocket): Promise<void> {
     const closeCb = jest.fn();
-    conn.onclose = closeCb;
+    conn.onclose =closeCb 
 
+    conn.close(1000); 
+
+    // NOTE: The websocket object seems to keep a handle open even after calling close(). Only the terminate() method actually frees the resource
+    // and triggerers the close event
     conn.terminate();
 
     await waitForExpect(() => {

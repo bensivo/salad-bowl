@@ -20,9 +20,13 @@ func TestGame_NewConnection_SendsPlayerId(t *testing.T) {
 	game.AddPlayer("000-000")
 
 	// Then the player receives an ID
-	mockHub.AssertCalled(t, "SendTo", "000-000", map[string]interface{}{
-		"ID": "000-000",
-	})
+	expected := hub.Message{
+		Event: "notification.player-id",
+		Payload: map[string]interface{}{
+			"playerId": "000-000",
+		},
+	}
+	mockHub.AssertCalled(t, "SendTo", "000-000", expected)
 }
 
 func TestGame_NewConnection_BroadcastsPlayerList(t *testing.T) {
@@ -38,7 +42,11 @@ func TestGame_NewConnection_BroadcastsPlayerList(t *testing.T) {
 	game.AddPlayer("111-111")
 
 	// Then the player list is sent out
-	mockHub.AssertCalled(t, "Broadcast", map[string]interface{}{
-		"Players": []string{"000-000", "111-111"},
-	})
+	expected := hub.Message{
+		Event: "state.player-list",
+		Payload: map[string]interface{}{
+			"players": []string{"000-000", "111-111"},
+		},
+	}
+	mockHub.AssertCalled(t, "Broadcast", expected)
 }

@@ -9,7 +9,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestInstance_NewConnection_CallsCallback(t *testing.T) {
+func TestInstance_HandleNewConnection_CallsCallback(t *testing.T) {
+	pc1 := hub.NewMockPlayerChannel(t)
+	pc1.On("OnMessage", mock.Anything).Return()
+	pc1.On("OnDisconnect", mock.Anything).Return()
+
 	// Given a registered connection callback
 	called := false
 	var callback hub.NewConnectionCallback = func(id string) {
@@ -17,10 +21,9 @@ func TestInstance_NewConnection_CallsCallback(t *testing.T) {
 	}
 
 	h := hub.NewHub()
-	h.RegisterNewConnectionCallback(callback)
+	h.OnNewConnection(callback)
 
 	// When a player connects
-	pc1 := hub.NewMockPlayerChannel(t)
 	h.HandleNewConnection(pc1)
 
 	// Then the callback is called
@@ -30,6 +33,8 @@ func TestInstance_NewConnection_CallsCallback(t *testing.T) {
 func TestInstance_NewConnection_Send(t *testing.T) {
 	util.SeedRand(0) // Makes generated IDs deterministic
 	pc1 := hub.NewMockPlayerChannel(t)
+	pc1.On("OnMessage", mock.Anything).Return()
+	pc1.On("OnDisconnect", mock.Anything).Return()
 	pc1.On("Send", mock.Anything).Return(nil)
 
 	// Given a hub
@@ -39,15 +44,23 @@ func TestInstance_NewConnection_Send(t *testing.T) {
 	h.HandleNewConnection(pc1)
 
 	// Then I can send messages to that player through the hub
-	h.SendTo("SSN-9QH", map[string]interface{}{"Hello": "Word"})
+	msg := hub.Message{
+		Event:   "test",
+		Payload: map[string]interface{}{},
+	}
+	h.SendTo("SSN-9QH", msg)
 
-	pc1.AssertCalled(t, "Send", map[string]interface{}{"Hello": "Word"})
+	pc1.AssertCalled(t, "Send", msg)
 }
 
 func TestInstance_Broadcast_SendsToAllPlayers(t *testing.T) {
 	pc1 := hub.NewMockPlayerChannel(t)
+	pc1.On("OnMessage", mock.Anything).Return()
+	pc1.On("OnDisconnect", mock.Anything).Return()
 	pc1.On("Send", mock.Anything).Return(nil)
 	pc2 := hub.NewMockPlayerChannel(t)
+	pc2.On("OnMessage", mock.Anything).Return()
+	pc2.On("OnDisconnect", mock.Anything).Return()
 	pc2.On("Send", mock.Anything).Return(nil)
 
 	// Given a new empty hub, with 2 players connected
@@ -57,8 +70,9 @@ func TestInstance_Broadcast_SendsToAllPlayers(t *testing.T) {
 	i.HandleNewConnection(pc2)
 
 	// When broadcast
-	msg := map[string]interface{}{
-		"hello": "world",
+	msg := hub.Message{
+		Event:   "test",
+		Payload: map[string]interface{}{},
 	}
 	i.Broadcast(msg)
 

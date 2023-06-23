@@ -18,11 +18,11 @@ func (_m *MockHub) EXPECT() *MockHub_Expecter {
 }
 
 // Broadcast provides a mock function with given fields: message
-func (_m *MockHub) Broadcast(message interface{}) error {
+func (_m *MockHub) Broadcast(message Message) error {
 	ret := _m.Called(message)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(Message) error); ok {
 		r0 = rf(message)
 	} else {
 		r0 = ret.Error(0)
@@ -37,14 +37,14 @@ type MockHub_Broadcast_Call struct {
 }
 
 // Broadcast is a helper method to define mock.On call
-//   - message interface{}
+//   - message Message
 func (_e *MockHub_Expecter) Broadcast(message interface{}) *MockHub_Broadcast_Call {
 	return &MockHub_Broadcast_Call{Call: _e.mock.On("Broadcast", message)}
 }
 
-func (_c *MockHub_Broadcast_Call) Run(run func(message interface{})) *MockHub_Broadcast_Call {
+func (_c *MockHub_Broadcast_Call) Run(run func(message Message)) *MockHub_Broadcast_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(interface{}))
+		run(args[0].(Message))
 	})
 	return _c
 }
@@ -54,50 +54,83 @@ func (_c *MockHub_Broadcast_Call) Return(_a0 error) *MockHub_Broadcast_Call {
 	return _c
 }
 
-func (_c *MockHub_Broadcast_Call) RunAndReturn(run func(interface{}) error) *MockHub_Broadcast_Call {
+func (_c *MockHub_Broadcast_Call) RunAndReturn(run func(Message) error) *MockHub_Broadcast_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// RegisterNewConnectionCallback provides a mock function with given fields: cb
-func (_m *MockHub) RegisterNewConnectionCallback(cb NewConnectionCallback) {
+// OnMessage provides a mock function with given fields: cb
+func (_m *MockHub) OnMessage(cb PlayerMessageCallback) {
 	_m.Called(cb)
 }
 
-// MockHub_RegisterNewConnectionCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterNewConnectionCallback'
-type MockHub_RegisterNewConnectionCallback_Call struct {
+// MockHub_OnMessage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnMessage'
+type MockHub_OnMessage_Call struct {
 	*mock.Call
 }
 
-// RegisterNewConnectionCallback is a helper method to define mock.On call
-//   - cb NewConnectionCallback
-func (_e *MockHub_Expecter) RegisterNewConnectionCallback(cb interface{}) *MockHub_RegisterNewConnectionCallback_Call {
-	return &MockHub_RegisterNewConnectionCallback_Call{Call: _e.mock.On("RegisterNewConnectionCallback", cb)}
+// OnMessage is a helper method to define mock.On call
+//   - cb PlayerMessageCallback
+func (_e *MockHub_Expecter) OnMessage(cb interface{}) *MockHub_OnMessage_Call {
+	return &MockHub_OnMessage_Call{Call: _e.mock.On("OnMessage", cb)}
 }
 
-func (_c *MockHub_RegisterNewConnectionCallback_Call) Run(run func(cb NewConnectionCallback)) *MockHub_RegisterNewConnectionCallback_Call {
+func (_c *MockHub_OnMessage_Call) Run(run func(cb PlayerMessageCallback)) *MockHub_OnMessage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(PlayerMessageCallback))
+	})
+	return _c
+}
+
+func (_c *MockHub_OnMessage_Call) Return() *MockHub_OnMessage_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockHub_OnMessage_Call) RunAndReturn(run func(PlayerMessageCallback)) *MockHub_OnMessage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// OnNewConnection provides a mock function with given fields: cb
+func (_m *MockHub) OnNewConnection(cb NewConnectionCallback) {
+	_m.Called(cb)
+}
+
+// MockHub_OnNewConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnNewConnection'
+type MockHub_OnNewConnection_Call struct {
+	*mock.Call
+}
+
+// OnNewConnection is a helper method to define mock.On call
+//   - cb NewConnectionCallback
+func (_e *MockHub_Expecter) OnNewConnection(cb interface{}) *MockHub_OnNewConnection_Call {
+	return &MockHub_OnNewConnection_Call{Call: _e.mock.On("OnNewConnection", cb)}
+}
+
+func (_c *MockHub_OnNewConnection_Call) Run(run func(cb NewConnectionCallback)) *MockHub_OnNewConnection_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(NewConnectionCallback))
 	})
 	return _c
 }
 
-func (_c *MockHub_RegisterNewConnectionCallback_Call) Return() *MockHub_RegisterNewConnectionCallback_Call {
+func (_c *MockHub_OnNewConnection_Call) Return() *MockHub_OnNewConnection_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *MockHub_RegisterNewConnectionCallback_Call) RunAndReturn(run func(NewConnectionCallback)) *MockHub_RegisterNewConnectionCallback_Call {
+func (_c *MockHub_OnNewConnection_Call) RunAndReturn(run func(NewConnectionCallback)) *MockHub_OnNewConnection_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SendTo provides a mock function with given fields: playerId, message
-func (_m *MockHub) SendTo(playerId string, message interface{}) error {
+func (_m *MockHub) SendTo(playerId string, message Message) error {
 	ret := _m.Called(playerId, message)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) error); ok {
+	if rf, ok := ret.Get(0).(func(string, Message) error); ok {
 		r0 = rf(playerId, message)
 	} else {
 		r0 = ret.Error(0)
@@ -113,14 +146,14 @@ type MockHub_SendTo_Call struct {
 
 // SendTo is a helper method to define mock.On call
 //   - playerId string
-//   - message interface{}
+//   - message Message
 func (_e *MockHub_Expecter) SendTo(playerId interface{}, message interface{}) *MockHub_SendTo_Call {
 	return &MockHub_SendTo_Call{Call: _e.mock.On("SendTo", playerId, message)}
 }
 
-func (_c *MockHub_SendTo_Call) Run(run func(playerId string, message interface{})) *MockHub_SendTo_Call {
+func (_c *MockHub_SendTo_Call) Run(run func(playerId string, message Message)) *MockHub_SendTo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(interface{}))
+		run(args[0].(string), args[1].(Message))
 	})
 	return _c
 }
@@ -130,7 +163,7 @@ func (_c *MockHub_SendTo_Call) Return(_a0 error) *MockHub_SendTo_Call {
 	return _c
 }
 
-func (_c *MockHub_SendTo_Call) RunAndReturn(run func(string, interface{}) error) *MockHub_SendTo_Call {
+func (_c *MockHub_SendTo_Call) RunAndReturn(run func(string, Message) error) *MockHub_SendTo_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -1,9 +1,7 @@
 package gorilla
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/bensivo/salad-bowl/hub"
@@ -16,7 +14,7 @@ var upgrader websocket.Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func StartGorillaServer(hub *hub.HubImpl) {
+func StartGorillaServer(h *hub.HubImpl) {
 	http.HandleFunc("/connect", func(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Printf("Incoming connection from %s\n", r.RemoteAddr)
@@ -31,47 +29,7 @@ func StartGorillaServer(hub *hub.HubImpl) {
 			Conn: conn,
 		}
 
-		hub.HandleNewConnection(playerChannel)
-	})
-
-	http.HandleFunc("/broadcast", func(w http.ResponseWriter, r *http.Request) {
-		bytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			fmt.Println("Error reading HTTP request body", err)
-			w.WriteHeader(400)
-			return
-		}
-
-		payload := make(map[string]string)
-		err = json.Unmarshal(bytes, &payload)
-		if err != nil {
-			fmt.Println("Error parsing HTTP request body", err)
-			w.WriteHeader(400)
-			return
-		}
-
-		hub.Broadcast(payload)
-		w.WriteHeader(200)
-	})
-
-	http.HandleFunc("/sendTo", func(w http.ResponseWriter, r *http.Request) {
-		bytes, err := io.ReadAll(r.Body)
-		if err != nil {
-			fmt.Println("Error reading HTTP request body", err)
-			w.WriteHeader(400)
-			return
-		}
-
-		payload := make(map[string]interface{})
-		err = json.Unmarshal(bytes, &payload)
-		if err != nil {
-			fmt.Println("Error parsing HTTP request body", err)
-			w.WriteHeader(400)
-			return
-		}
-
-		hub.SendTo(fmt.Sprintf("%v", payload["ID"]), payload["Message"])
-		w.WriteHeader(200)
+		h.HandleNewConnection(playerChannel)
 	})
 
 	fmt.Println("Starting websocket server at port 8080")
