@@ -16,15 +16,18 @@ type Hub interface {
 	Broadcast(message Message) error
 
 	OnNewConnection(cb NewConnectionCallback)
+	OnPlayerDisconnect(cb PlayerDisconnectCallback)
 	OnMessage(cb PlayerMessageCallback)
 }
 
 type NewConnectionCallback func(playerId string)
+type PlayerDisconnectCallback func(playerId string)
 type PlayerMessageCallback func(playerId string, message Message)
 
 type HubImpl struct {
 	PlayerChannels        map[string]PlayerChannel
 	newConnectionCallback NewConnectionCallback
+	disconnectCallback    PlayerDisconnectCallback
 	playerMessageCallback PlayerMessageCallback
 }
 
@@ -40,6 +43,10 @@ func (h *HubImpl) OnNewConnection(cb NewConnectionCallback) {
 	h.newConnectionCallback = cb
 }
 
+func (h *HubImpl) OnPlayerDisconnect(cb PlayerDisconnectCallback) {
+	h.disconnectCallback = cb
+}
+
 func (h *HubImpl) OnMessage(cb PlayerMessageCallback) {
 	h.playerMessageCallback = cb
 }
@@ -53,6 +60,7 @@ func (h *HubImpl) HandleNewConnection(playerChannel PlayerChannel) {
 	playerChannel.OnDisconnect(func() {
 		fmt.Printf("Player connection %s disconnected\n", playerId)
 		delete(h.PlayerChannels, playerId)
+		h.disconnectCallback(playerId)
 	})
 
 	if h.newConnectionCallback != nil {

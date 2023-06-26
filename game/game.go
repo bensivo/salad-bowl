@@ -43,6 +43,7 @@ func NewGame(hub hub.Hub) *Game {
 func (g *Game) Start() {
 	g.Hub.OnNewConnection(g.HandleNewConnection)
 	g.Hub.OnMessage(g.HandleMessage)
+	g.Hub.OnPlayerDisconnect(g.HandlePlayerDisconnect)
 }
 
 // HandleNewConnection adds a player to the game by id.
@@ -62,27 +63,26 @@ func (g *Game) HandleNewConnection(playerId string) {
 	player := NewPlayer(playerId)
 	g.Players = append(g.Players, player)
 
-	// Broadcast all PlayerIds to all players
-	playerList := make([]string, len(g.Players))
+	g.broadcastPlayerList()
+	g.broadcastTeams()
+}
+
+func (g *Game) HandlePlayerDisconnect(playerId string) {
+	fmt.Printf("Player %s disconnected\n", playerId)
+
+	// Remove from player List
 	for i := 0; i < len(g.Players); i++ {
-		playerList[i] = g.Players[i].Id
+		if g.Players[i].Id == playerId {
+			g.Players[i] = g.Players[len(g.Players)-1]
+			g.Players = g.Players[:len(g.Players)-1]
+			break
+		}
 	}
 
-	playerListMsg := hub.Message{
-		Event: "state.player-list",
-		Payload: map[string]interface{}{
-			"players": playerList,
-		},
-	}
-	g.Hub.Broadcast(playerListMsg)
+	g.removePlayerFromAllTeams(playerId)
 
-	teamsMsg := hub.Message{
-		Event: "state.teams",
-		Payload: map[string]interface{}{
-			"teams": g.TeamPlayerIds,
-		},
-	}
-	g.Hub.Broadcast(teamsMsg)
+	g.broadcastPlayerList()
+	g.broadcastTeams()
 }
 
 func (g *Game) HandleMessage(playerId string, message hub.Message) {
@@ -107,25 +107,7 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 			return
 		}
 
-		// Remove player from all teams, so we don't end up with duplicate entries
-		team0 := g.TeamPlayerIds[0]
-		team1 := g.TeamPlayerIds[1]
-		for i, v := range team0 {
-			if v == playerId {
-				fmt.Printf("Removing player %s from team %d\n", playerId, team)
-				team0[i] = team0[len(team0)-1]
-				team0 = team0[:len(team0)-1]
-				g.TeamPlayerIds[0] = team0
-			}
-		}
-		for i, v := range team1 {
-			if v == playerId {
-				fmt.Printf("Removing player %s from team %d\n", playerId, team)
-				team1[i] = team1[len(team1)-1]
-				team1 = team1[:len(team1)-1]
-				g.TeamPlayerIds[1] = team1
-			}
-		}
+		g.removePlayerFromAllTeams(playerId)
 
 		g.TeamPlayerIds[team] = append(g.TeamPlayerIds[team], playerId)
 		g.Hub.SendTo(playerId, hub.Message{
@@ -137,15 +119,57 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 			},
 		})
 
-		g.Hub.Broadcast(hub.Message{
-			Event: "state.teams",
-			Payload: map[string]interface{}{
-				"teams": g.TeamPlayerIds,
-			},
-		})
+		g.broadcastTeams()
 
 	default:
 		fmt.Printf("Unknown event %s\n", message.Event)
+	}
+}
+
+func (g *Game) broadcastPlayerList() {
+	// Broadcast all PlayerIds to all players
+	playerList := make([]string, len(g.Players))
+	for i := 0; i < len(g.Players); i++ {
+		playerList[i] = g.Players[i].Id
+	}
+
+	playerListMsg := hub.Message{
+		Event: "state.player-list",
+		Payload: map[string]interface{}{
+			"players": playerList,
+		},
+	}
+	g.Hub.Broadcast(playerListMsg)
+}
+
+func (g *Game) broadcastTeams() {
+	g.Hub.Broadcast(hub.Message{
+		Event: "state.teams",
+		Payload: map[string]interface{}{
+			"teams": g.TeamPlayerIds,
+		},
+	})
+}
+
+func (g *Game) removePlayerFromAllTeams(playerId string) {
+	// Remove player from all teams, so we don't end up with duplicate entries
+	team0 := g.TeamPlayerIds[0]
+	team1 := g.TeamPlayerIds[1]
+	for i, v := range team0 {
+		if v == playerId {
+			fmt.Printf("Removing player %s from team %d\n", playerId, 0)
+			team0[i] = team0[len(team0)-1]
+			team0 = team0[:len(team0)-1]
+			g.TeamPlayerIds[0] = team0
+		}
+	}
+	for i, v := range team1 {
+		if v == playerId {
+			fmt.Printf("Removing player %s from team %d\n", playerId, 1)
+			team1[i] = team1[len(team1)-1]
+			team1 = team1[:len(team1)-1]
+			g.TeamPlayerIds[1] = team1
+		}
 	}
 }
 
