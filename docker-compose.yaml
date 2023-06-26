@@ -1,9 +1,16 @@
 version: '3.4'
 
 services:
-  saladbowl:
-    image: saladbowl
-    container_name: saladbowl
+  service:
+    image: saladbowl-service
+    container_name: saladbowl-service
     build: ./
     ports:
       - 8080:8080
+
+  web:
+    image: saladbowl-web
+    container_name: saladbowl-web
+    build: ./webapp
+    ports:
+      - 3000:3000
