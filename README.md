@@ -20,3 +20,10 @@ go install github.com/vektra/mockery/v2@v2.30.1
 # Download dependencies for e2e test suite
 cd e2e && npm i
 ```
+
+
+The included taskfile has shortcuts for all the basic development tasks:
+- Run unit tests: `task test`
+- Start local env: `task up`
+- Run e2e tests: `task e2e`
+- Stop local env: `task down`

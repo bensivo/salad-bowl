@@ -125,6 +125,39 @@ func (_c *MockHub_OnNewConnection_Call) RunAndReturn(run func(NewConnectionCallb
 	return _c
 }
 
+// OnPlayerDisconnect provides a mock function with given fields: cb
+func (_m *MockHub) OnPlayerDisconnect(cb PlayerDisconnectCallback) {
+	_m.Called(cb)
+}
+
+// MockHub_OnPlayerDisconnect_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OnPlayerDisconnect'
+type MockHub_OnPlayerDisconnect_Call struct {
+	*mock.Call
+}
+
+// OnPlayerDisconnect is a helper method to define mock.On call
+//   - cb PlayerDisconnectCallback
+func (_e *MockHub_Expecter) OnPlayerDisconnect(cb interface{}) *MockHub_OnPlayerDisconnect_Call {
+	return &MockHub_OnPlayerDisconnect_Call{Call: _e.mock.On("OnPlayerDisconnect", cb)}
+}
+
+func (_c *MockHub_OnPlayerDisconnect_Call) Run(run func(cb PlayerDisconnectCallback)) *MockHub_OnPlayerDisconnect_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(PlayerDisconnectCallback))
+	})
+	return _c
+}
+
+func (_c *MockHub_OnPlayerDisconnect_Call) Return() *MockHub_OnPlayerDisconnect_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockHub_OnPlayerDisconnect_Call) RunAndReturn(run func(PlayerDisconnectCallback)) *MockHub_OnPlayerDisconnect_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SendTo provides a mock function with given fields: playerId, message
 func (_m *MockHub) SendTo(playerId string, message Message) error {
 	ret := _m.Called(playerId, message)

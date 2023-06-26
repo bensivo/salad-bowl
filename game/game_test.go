@@ -56,6 +56,7 @@ func TestGame_TeamRequest_Success(t *testing.T) {
 	h := hub.NewMockHub(t)
 	h.On("OnNewConnection", mock.Anything).Return()
 	h.On("OnMessage", mock.Anything).Return()
+	h.On("OnPlayerDisconnect", mock.Anything).Return()
 	h.On("SendTo", mock.Anything, mock.Anything).Return(nil)
 	h.On("Broadcast", mock.Anything).Return(nil)
 
@@ -89,6 +90,7 @@ func TestGame_TeamRequest_StateUpdate(t *testing.T) {
 	h := hub.NewMockHub(t)
 	h.On("OnNewConnection", mock.Anything).Return()
 	h.On("OnMessage", mock.Anything).Return()
+	h.On("OnPlayerDisconnect", mock.Anything).Return()
 	h.On("SendTo", mock.Anything, mock.Anything).Return(nil)
 	h.On("Broadcast", mock.Anything).Return(nil)
 

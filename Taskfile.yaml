@@ -1,16 +1,29 @@
 version: '3'
 
 tasks:
-  run:
+  precommit:
+    summary: Runs through all local tests to verify commit
     cmds:
-      - go run main.go
+      - go clean -testcache ./...
+      - task test
+      - task up
+      - task e2e
+      - task down
+    silent: true
+
+  up:
+    cmds:
+      - docker-compose up --build -d
+    silent: true
+
+  down:
+    cmds:
+      - docker-compose down
     silent: true
 
   e2e:
     cmds:
-      - docker-compose up --build -d
       - cd e2e && npm run test
-      - docker-compose down
     silent: true
 
   generate:
