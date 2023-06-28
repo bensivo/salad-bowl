@@ -9,14 +9,7 @@ import './page.css';
 var conn: WebSocket;
 
 export default function LobbyPage() {
-    const lobbyId = sessionStorage.getItem('lobbyId')
-    if (!lobbyId) {
-        console.error('Could not fetch lobbyId from session storage. Navigating back to home page');
-        // TODO: show an error message to the user once they get back to the homepage.
-        window.location.href = '/';
-        return;
-    }
-
+    const [lobbyId, setLobbyId] = useState<string | null>('');
     const [myPlayerId, setMyPlayerId] = useState<string>('');
 
     useEffect(() => {
@@ -27,6 +20,14 @@ export default function LobbyPage() {
     const teams = useObservableState(playerStore.teams$, []);
 
     function connect() {
+        const lobbyId = sessionStorage.getItem('lobbyId') // find out how to keep this from failing in the next server
+        if (!lobbyId) {
+            console.error('Could not fetch lobbyId from session storage. Navigating back to home page');
+            // TODO: show an error message to the user once they get back to the homepage.
+            window.location.href = '/';
+        }
+        setLobbyId(lobbyId)
+
         conn = new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect`)
         conn.onmessage = (e) => {
             const msg = JSON.parse(e.data);
@@ -58,26 +59,27 @@ export default function LobbyPage() {
 
     return (
         <div id='lobby'>
-            <h1>Lobby: {lobbyId}</h1>
-            <h3>Player ID: {myPlayerId}</h3>
-            <div>
-                <h3>Players</h3>
-                {players.map((playerId, i) => (
-                    <div key={i}>ID: {(playerId == myPlayerId) ? `${playerId} (me)` : playerId}</div>
-                ))}
+
+            <div id='title' className='content-main card'>
+                <h1>Lobby</h1>
+                <h3>Join Code: {lobbyId}</h3>
+
+                <label>Player ID: {myPlayerId}</label>
             </div>
 
             <div>
-                <h3>Teams</h3>
                 {
                     teams.map((team, i) => (
-                        <div key={i}>
-                            <h4>Team {i}</h4>
-                            <button onClick={() => joinTeam(i)}> Join Team </button>
-                            {team.map(playerId => (
-                                <span key={playerId}>{playerId},</span>
-                            ))
-                            }
+                        <div key={i} className='content-main card'>
+                            <div className="card-header">
+                                <h4>Team {i}</h4>
+                                <button onClick={() => joinTeam(i)}> Join Team </button>
+                            </div>
+                            <ul>
+                                {team.map(playerId => (
+                                    <li key={playerId}>{playerId === myPlayerId ? `${playerId} (me)` : playerId}</li>
+                                ))}
+                            </ul>
                         </div>
                     ))
                 }

@@ -11,10 +11,6 @@ import (
 )
 
 func main() {
-	// hub := hub.NewHub()
-	// lobby := lobby.NewLobby(hub)
-	// lobby.Start()
-
 	lobbySvc := lobby.NewLobbyService()
 	lobbySvc.StartCleanup()
 

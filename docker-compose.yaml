@@ -5,6 +5,7 @@ services:
     image: saladbowl-service
     container_name: saladbowl-service
     build: ./service
+    restart: always
     ports:
       - 8080:8080
 

@@ -49,7 +49,7 @@ func TestInstance_NewConnection_Send(t *testing.T) {
 		Event:   "test",
 		Payload: map[string]interface{}{},
 	}
-	h.SendTo("SSN-9QH", msg)
+	h.SendTo("CUB-HIZ", msg)
 
 	pc1.AssertCalled(t, "Send", msg)
 }
