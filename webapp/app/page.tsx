@@ -2,19 +2,45 @@
 
 import { useState } from 'react';
 import { CharInput } from '../components/char-input';
+import axios from 'axios';
 import './page.css';
 
 export default function HomePage() {
 
     const [joinCode, setJoinCode] = useState('');
 
-    const onClickNewGame = () => {
-        // TODO: make a request to the server to make sure the lobby can be created
-        window.location.href = '/lobby' // TODO: add the lobby's url here
+    const onClickNewGame = async () => {
+        const res = await axios.request({
+            method: 'post',
+            url: 'http://localhost:8080/lobbies',
+        })
+
+        // TODO: error notification on failure
+
+        const lobbyId = res.data.lobbyId;
+        sessionStorage.setItem('lobbyId', lobbyId);
+        window.location.href = '/lobby'
     }
 
-    const onClickJoinGame = () => {
+    const onClickJoinGame = async () => {
         console.log('Joining Game with code', joinCode);
+        if (joinCode.length != 7) {
+            console.error('Fill in the entire join code before joining')
+            return;
+        }
+
+        const res = await axios.request({
+            method: 'get',
+            url: 'http://localhost:8080/lobbies',
+        });
+        if (!res.data[joinCode]) {
+            console.error(`Lobby ${joinCode} not found`)
+            // TODO: error notification
+            return;
+        }
+
+        sessionStorage.setItem('lobbyId', joinCode);
+        window.location.href = '/lobby'
     }
 
     return (

@@ -1,7 +1,7 @@
 'use client'
 import * as uuid from 'uuid';
 import { useObservableState } from "observable-hooks"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import playerStore from "../store/player-store"
 
 import './page.css';
@@ -9,18 +9,25 @@ import './page.css';
 var conn: WebSocket;
 
 export default function LobbyPage() {
+    const lobbyId = sessionStorage.getItem('lobbyId')
+    if (!lobbyId) {
+        console.error('Could not fetch lobbyId from session storage. Navigating back to home page');
+        // TODO: show an error message to the user once they get back to the homepage.
+        window.location.href = '/';
+        return;
+    }
 
-    const [connStatus, setConnStatus] = useState<string>('Disconnected');
     const [myPlayerId, setMyPlayerId] = useState<string>('');
+
+    useEffect(() => {
+        connect();
+    }, []) // passing an empty array in the second arg makes this effect only run once
 
     const players = useObservableState(playerStore.players$, []);
     const teams = useObservableState(playerStore.teams$, []);
 
     function connect() {
-        conn = new WebSocket("ws://localhost:8080/connect")
-        conn.onopen = () => {
-            setConnStatus('Connected')
-        }
+        conn = new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect`)
         conn.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             console.log('Received message', msg)
@@ -38,12 +45,6 @@ export default function LobbyPage() {
             }
         }
     }
-    function disconnect() {
-        conn.close(1000);
-        setMyPlayerId('')
-        playerStore.setPlayers([])
-        playerStore.setTeams([[],[]])
-    }
 
     function joinTeam(i: number) {
         conn.send(JSON.stringify({
@@ -57,10 +58,7 @@ export default function LobbyPage() {
 
     return (
         <div id='lobby'>
-            Status: {connStatus}
-            <button onClick={connect}>Connect</button>
-            <button onClick={disconnect}>Disconnect</button>
-
+            <h1>Lobby: {lobbyId}</h1>
             <h3>Player ID: {myPlayerId}</h3>
             <div>
                 <h3>Players</h3>

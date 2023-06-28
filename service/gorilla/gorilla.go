@@ -7,6 +7,7 @@ import (
 
 	"github.com/bensivo/salad-bowl/hub/adapters"
 	"github.com/bensivo/salad-bowl/lobby"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
@@ -76,7 +77,7 @@ func StartGorillaServer(svc *lobby.LobbyService) {
 		Methods("GET")
 
 	fmt.Println("Starting websocket server at port 8080")
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", handlers.CORS()(r))
 }
 
 func writeJson(w http.ResponseWriter, statusCode int, payload map[string]interface{}) {

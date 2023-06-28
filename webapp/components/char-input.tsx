@@ -19,7 +19,21 @@ export function CharInput(props: CharInputProps) {
 
     const [values, setValues] = useState<string[]>(initialValue);
     useEffect(() => {
-        props.onChange(values.join(''));
+        const output = [];
+        let i = 0;
+        for(const char of props.template) {
+            switch (char) {
+                case 'X':
+                case 'x':
+                    output.push(values[i])
+                    i++;
+                    break;
+                case '-':
+                    output.push(['-'])
+                    break;
+            }
+        }
+        props.onChange(output.join(''));
     })
 
     const inputRefs = useRef<Array<HTMLInputElement | null>>([]);

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var letterRunes = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 var generator *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
