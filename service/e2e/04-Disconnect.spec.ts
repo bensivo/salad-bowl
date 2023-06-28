@@ -1,15 +1,19 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import waitForExpect from 'wait-for-expect';
-import WebSocket from 'ws';
-import { connect, disconnect, getPlayerId } from './01-Connect.spec';
-import { joinTeam } from './02-Teams.spec';
+import { joinTeam } from './03-Teams.spec';
+import { connect, createLobby, disconnect, getPlayerId } from './actions';
 
 describe('Disconnect', () => {
+    let lobbyId: string;
+    beforeAll(async () => {
+        lobbyId = await createLobby();
+    });
+
     it('should update the player list, with the given player removed', async () => {
-        const res1 = await connect()
+        const res1 = await connect(lobbyId)
         const [conn1, messageCb1] = [res1.conn, res1.messageCb];
 
-        const res2 = await connect()
+        const res2 = await connect(lobbyId)
         const [conn2, messageCb2] = [res2.conn, res2.messageCb];
         const playerId2 = getPlayerId(messageCb2)
 
@@ -41,10 +45,10 @@ describe('Disconnect', () => {
     })
 
     it('should update the team list, with the given player removed', async () => {
-        const res1 = await connect()
+        const res1 = await connect(lobbyId)
         const [conn1, messageCb1] = [res1.conn, res1.messageCb];
 
-        const res2 = await connect()
+        const res2 = await connect(lobbyId)
         const [conn2, messageCb2] = [res2.conn, res2.messageCb];
         const playerId2 = getPlayerId(messageCb2)
 

@@ -1,45 +1,33 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
+import axios from 'axios';
 import waitForExpect from 'wait-for-expect';
 import WebSocket from 'ws';
 
-describe('Connect', () => {
-    it('should receive a playerId', async () => {
-        const { conn, messageCb } = await connect();
+export async function createLobby(): Promise<string> {
+    const createRes = await axios.request({
+        method: 'POST',
+        url: 'http://localhost:8080/lobbies',
+        data: {}
+    });
 
-        await waitForExpect(() => {
-            expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({
-                event: 'notification.player-id',
-                payload: {
-                    playerId: expect.anything(),
-                }
-            }));
-        });
+    const lobbyId = createRes.data.lobbyId;
 
-        await disconnect(conn);
+    const getRes = await axios.request({
+        method: 'GET',
+        url: 'http://localhost:8080/lobbies'
     })
 
-    it('should receive a player list', async () => {
-        const { conn, messageCb } = await connect();
+    expect(getRes.data[lobbyId]).toBeTruthy();
 
-        await waitForExpect(() => {
-            expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({
-                event: 'state.player-list',
-                payload: {
-                    players: expect.anything(),
-                }
-            }));
-        });
+    return lobbyId;
+}
 
-        await disconnect(conn);
-    })
-})
-
-export async function connect(): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
+export async function connect(lobbyId: string): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
     let conn: WebSocket
     const openCb = jest.fn();
     const messageCb = jest.fn();
 
-    conn = new WebSocket('ws://localhost:8080/connect')
+    conn = new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect`)
     conn.onopen = openCb;
     conn.onmessage = (event) => {
         messageCb(JSON.parse(event.data.toString()))

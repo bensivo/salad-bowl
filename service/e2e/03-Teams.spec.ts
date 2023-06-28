@@ -1,12 +1,18 @@
-import { describe, it, jest, expect } from '@jest/globals';
-import { connect, disconnect, getPlayerId } from './01-Connect.spec';
+import { describe, it, jest, expect, beforeAll } from '@jest/globals';
 import waitForExpect from 'wait-for-expect';
 import { WebSocket } from 'ws';
+import { connect, createLobby, disconnect, getPlayerId } from './actions';
 
 describe('Teams', () => {
+    let lobbyId: string;
+
+    beforeAll(async () => {
+        lobbyId = await createLobby();
+    });
+
     describe('join team', () => {
         it('should send a success message', async () => {
-            const { conn, messageCb } = await connect();
+            const { conn, messageCb } = await connect(lobbyId);
 
             await joinTeam(conn, messageCb, 1);
 
@@ -15,7 +21,7 @@ describe('Teams', () => {
 
 
         it('should send team list', async () => {
-            const { conn, messageCb } = await connect();
+            const { conn, messageCb } = await connect(lobbyId);
 
             const playerId = getPlayerId(messageCb);
 
@@ -39,7 +45,7 @@ describe('Teams', () => {
 
     describe('switch teams', () => {
         it('should remove me from the old team and put me in the new one', async () => {
-            const { conn, messageCb } = await connect();
+            const { conn, messageCb } = await connect(lobbyId);
 
             const playerId = getPlayerId(messageCb);
 

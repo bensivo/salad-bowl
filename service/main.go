@@ -7,17 +7,18 @@ import (
 	"syscall"
 
 	"github.com/bensivo/salad-bowl/gorilla"
-	"github.com/bensivo/salad-bowl/hub"
 	"github.com/bensivo/salad-bowl/lobby"
 )
 
 func main() {
-	hub := hub.NewHub()
-	lobby := lobby.NewLobby(hub)
+	// hub := hub.NewHub()
+	// lobby := lobby.NewLobby(hub)
+	// lobby.Start()
 
-	lobby.Start()
+	lobbySvc := lobby.NewLobbyService()
+	lobbySvc.StartCleanup()
 
-	go gorilla.StartGorillaServer(hub)
+	go gorilla.StartGorillaServer(lobbySvc)
 
 	waitForSigint()
 }

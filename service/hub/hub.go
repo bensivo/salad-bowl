@@ -10,6 +10,9 @@ import (
 //
 // It exposes methods for sending messages to player devices, and allows users to register callbacks for received messages.
 //
+// In the context of this app, each individual game / lobby gets its own hub instance. This prevents players receiving messages from
+// other games going on at the same time.
+//
 //go:generate mockery --name Hub
 type Hub interface {
 	SendTo(playerId string, message Message) error
@@ -18,6 +21,8 @@ type Hub interface {
 	OnNewConnection(cb NewConnectionCallback)
 	OnPlayerDisconnect(cb PlayerDisconnectCallback)
 	OnMessage(cb PlayerMessageCallback)
+
+	HandleNewConnection(playerChannel PlayerChannel)
 }
 
 type NewConnectionCallback func(playerId string)

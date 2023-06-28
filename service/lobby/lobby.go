@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bensivo/salad-bowl/hub"
 )
@@ -10,6 +11,7 @@ type Lobby struct {
 	Hub           hub.Hub
 	Players       []*Player
 	TeamPlayerIds [][]string
+	CreatedAt     time.Time
 }
 
 func NewLobby(hub hub.Hub) *Lobby {
@@ -21,6 +23,7 @@ func NewLobby(hub hub.Hub) *Lobby {
 		Hub:           hub,
 		Players:       []*Player{},
 		TeamPlayerIds: teams, // length 2 array of strings, representing playerIds
+		CreatedAt:     time.Now(),
 	}
 }
 

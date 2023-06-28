@@ -59,6 +59,39 @@ func (_c *MockHub_Broadcast_Call) RunAndReturn(run func(Message) error) *MockHub
 	return _c
 }
 
+// HandleNewConnection provides a mock function with given fields: playerChannel
+func (_m *MockHub) HandleNewConnection(playerChannel PlayerChannel) {
+	_m.Called(playerChannel)
+}
+
+// MockHub_HandleNewConnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandleNewConnection'
+type MockHub_HandleNewConnection_Call struct {
+	*mock.Call
+}
+
+// HandleNewConnection is a helper method to define mock.On call
+//   - playerChannel PlayerChannel
+func (_e *MockHub_Expecter) HandleNewConnection(playerChannel interface{}) *MockHub_HandleNewConnection_Call {
+	return &MockHub_HandleNewConnection_Call{Call: _e.mock.On("HandleNewConnection", playerChannel)}
+}
+
+func (_c *MockHub_HandleNewConnection_Call) Run(run func(playerChannel PlayerChannel)) *MockHub_HandleNewConnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(PlayerChannel))
+	})
+	return _c
+}
+
+func (_c *MockHub_HandleNewConnection_Call) Return() *MockHub_HandleNewConnection_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockHub_HandleNewConnection_Call) RunAndReturn(run func(PlayerChannel)) *MockHub_HandleNewConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OnMessage provides a mock function with given fields: cb
 func (_m *MockHub) OnMessage(cb PlayerMessageCallback) {
 	_m.Called(cb)
