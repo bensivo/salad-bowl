@@ -1,0 +1,17 @@
+.char-input input {
+    display:inline;
+    width: 2rem;
+    text-align: center;
+    border:none;
+    border-radius: 0;
+    border-bottom: solid 2px #CF8764;
+    margin-left:.25rem;
+    margin-right:.25rem;
+}
+.char-input span {
+    display:inline;
+    width: 2rem;
+    text-align: center;
+    margin-left:.25rem;
+    margin-right:.25rem;
+}
