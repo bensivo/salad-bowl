@@ -4,7 +4,7 @@ tasks:
   precommit:
     summary: Runs through all local tests to verify commit
     cmds:
-      - go clean -testcache ./...
+      - go clean -testcache
       - task test
       - task up
       - task e2e
@@ -22,16 +22,19 @@ tasks:
     silent: true
 
   e2e:
+    dir: service/e2e
     cmds:
-      - cd e2e && npm run test
+      - npm run test
     silent: true
 
   generate:
+    dir: service
     cmds:
       - go generate ./...
     silent: true
 
   test:
+    dir: service
     cmds:
       - go test ./...
     silent: true
