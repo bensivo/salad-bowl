@@ -14,7 +14,7 @@ export default function HomePage() {
     const onClickNewGame = async () => {
         const res = await axios.request({
             method: 'post',
-            url: 'http://api.saladbowl.bensivo.com/lobbies',
+            url: 'https://api.saladbowl.bensivo.com/lobbies',
         })
 
         // TODO: error notification on failure
@@ -33,7 +33,7 @@ export default function HomePage() {
 
         const res = await axios.request({
             method: 'get',
-            url: 'http://api.saladbowl.bensivo.com/lobbies',
+            url: 'https://api.saladbowl.bensivo.com/lobbies',
         });
         if (!res.data[joinCode]) {
             console.error(`Lobby ${joinCode} not found`)
