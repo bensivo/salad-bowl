@@ -10,7 +10,18 @@ adduser bensivo
 usermod -aG sudo bensivo
 ```
 
-2. Create 2 DNS records pointing to your new server's public IP
+2. Install ufw and configure it to only allow http/s and ssh traffic
+```
+sudo apt install ufw
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw enable
+sudo ufw status verbose
+```
+3. Create 2 DNS records pointing to your new server's public IP
 - saladbowl.bensivo.com
 - api.saladbowl.bensivo.com
 
