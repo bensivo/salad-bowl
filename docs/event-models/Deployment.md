@@ -10,6 +10,10 @@ adduser bensivo
 usermod -aG sudo bensivo
 ```
 
+2. Create 2 DNS records pointing to your new server's public IP
+- saladbowl.bensivo.com
+- api.saladbowl.bensivo.com
+
 ### Deploy the saladbowl service
 1. Build the go service locally, setting appropriate flags to build for linux
 ```
@@ -64,7 +68,7 @@ tar -zcvf saladbowl-web.tar ./out
 
 3. Copy the tar file to the server and extract it into the 'web' folder
 ```
-IP=72.14.184.25
+IP=saladbowl.bensivo.com
 scp ./saladbowl-web.tar bensivo@$IP:/home/bensivo/
 ssh bensivo@$IP "mkdir -p /home/bensivo/web && tar -zxvf /home/bensivo/saladbowl-web.tar --strip-components=2 -C /home/bensivo/web"
 ```
@@ -80,16 +84,35 @@ user bensivo;
 ...
 
 # Add this block within the "http" section, at the end
-server {
-    listen 80;
-    listen [::]:80;
-    server_name 72.14.184.25;
+	server {
+	    listen 80;
+	    listen [::]:80;
+	    server_name saladbowl.bensivo.com;
 
-    root /home/bensivo/web;
+	    root /home/bensivo/web;
 
-    location / {
-    }
-}o
+	    location / {
+	    }
+	}
+
+	server {
+	    listen 80;
+	    listen [::]:80;
+	    server_name api.saladbowl.bensivo.com;
+
+	    location / {
+	        proxy_pass http://localhost:8080;
+	    }
+
+        # Special logic to handle websocket routes
+        location ~ /lobbies/.*/connect {
+            proxy_pass http://localhost:8080;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_set_header Host $host;
+        }
+	}
 
 ```
 ```
@@ -105,7 +128,7 @@ After the first installation, updating either app is much quicker.
 ```
 GOOS=linux GOARCH=amd64 go build -o saladbowl-service ./main.go
 
-IP=x.x.x.x
+IP=saladbowl.bensivo.com
 ssh bensivo@$IP "mkdir -p /home/bensivo/bin"
 scp ./saladbowl-service bensivo@$IP:/home/bensivo/bin/
 ssh -t bensivo@72.14.184.25 "sudo systemctl restart saladbowl-service"
@@ -116,7 +139,7 @@ ssh -t bensivo@72.14.184.25 "sudo systemctl restart saladbowl-service"
 npm run build
 tar -zcvf saladbowl-web.tar ./out
 
-IP=x.x.x.x
+IP=saladbowl.bensivo.com
 scp ./saladbowl-web.tar bensivo@$IP:/home/bensivo/
 ssh bensivo@$IP "mkdir -p /home/bensivo/web && tar -zxvf /home/bensivo/saladbowl-web.tar --strip-components=2 -C /home/bensivo/web"
 ```

@@ -30,7 +30,7 @@ export default function LobbyPage() {
         }
         setLobbyId(lobbyId)
 
-        conn = new WebSocket(`ws://72.14.184.25:8080/lobbies/${lobbyId}/connect`)
+        conn = new WebSocket(`ws://api.saladbowl.bensivo.com/lobbies/${lobbyId}/connect`)
         conn.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             console.log('Received message', msg)
