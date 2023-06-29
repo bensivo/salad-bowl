@@ -2,24 +2,26 @@
 
 import { useState } from 'react';
 import { CharInput } from '../components/char-input';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import './page.css';
 
 export default function HomePage() {
 
+    const router  = useRouter();
     const [joinCode, setJoinCode] = useState('');
 
     const onClickNewGame = async () => {
         const res = await axios.request({
             method: 'post',
-            url: 'http://localhost:8080/lobbies',
+            url: 'http://72.14.184.25:8080/lobbies',
         })
 
         // TODO: error notification on failure
 
         const lobbyId = res.data.lobbyId;
         sessionStorage.setItem('lobbyId', lobbyId);
-        window.location.href = '/lobby'
+        router.push('/lobby')
     }
 
     const onClickJoinGame = async () => {
@@ -31,7 +33,7 @@ export default function HomePage() {
 
         const res = await axios.request({
             method: 'get',
-            url: 'http://localhost:8080/lobbies',
+            url: 'http://72.14.184.25:8080/lobbies',
         });
         if (!res.data[joinCode]) {
             console.error(`Lobby ${joinCode} not found`)
@@ -40,7 +42,7 @@ export default function HomePage() {
         }
 
         sessionStorage.setItem('lobbyId', joinCode);
-        window.location.href = '/lobby'
+        router.push('/lobby')
     }
 
     return (

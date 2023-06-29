@@ -3,12 +3,14 @@ import * as uuid from 'uuid';
 import { useObservableState } from "observable-hooks"
 import { useEffect, useState } from "react"
 import playerStore from "../store/player-store"
+import { useRouter } from 'next/navigation';
 
 import './page.css';
 
 var conn: WebSocket;
 
 export default function LobbyPage() {
+    const router  = useRouter();
     const [lobbyId, setLobbyId] = useState<string | null>('');
     const [myPlayerId, setMyPlayerId] = useState<string>('');
 
@@ -24,11 +26,11 @@ export default function LobbyPage() {
         if (!lobbyId) {
             console.error('Could not fetch lobbyId from session storage. Navigating back to home page');
             // TODO: show an error message to the user once they get back to the homepage.
-            window.location.href = '/';
+            router.push('/');
         }
         setLobbyId(lobbyId)
 
-        conn = new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect`)
+        conn = new WebSocket(`ws://72.14.184.25:8080/lobbies/${lobbyId}/connect`)
         conn.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             console.log('Received message', msg)
