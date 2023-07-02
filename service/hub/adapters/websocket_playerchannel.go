@@ -52,3 +52,7 @@ func (wpc *WebsocketPlayerChannel) OnDisconnect(cb hub.DisconnectCallback) {
 	fmt.Println("Registering disconnect handler")
 	wpc.disconnectCb = cb
 }
+
+func (wpc *WebsocketPlayerChannel) Close() error {
+	return wpc.Conn.Close()
+}

@@ -37,7 +37,7 @@ func (l *Lobby) Start() {
 // HandleNewConnection adds a player to the lobby by id.
 // It sends that player their welcome message, and then broadcasts the updated player list.
 func (l *Lobby) HandleNewConnection(playerId string) {
-	fmt.Printf("New player with id %s\n", playerId)
+	fmt.Printf("New connection with id %s\n", playerId)
 
 	// Send the player's id to them so they know what it is
 	welcomeMsg := hub.Message{
@@ -57,6 +57,9 @@ func (l *Lobby) HandleNewConnection(playerId string) {
 
 func (l *Lobby) HandlePlayerDisconnect(playerId string) {
 	fmt.Printf("Player %s disconnected\n", playerId)
+	// TODO: should we completely remove them on disconnect, or keep them and show idle?
+	// If we keep them, we probably need the host to be able to remove idle players.
+	// If not, they could lose all their game state, esp if the game has already started.
 
 	l.removeFromPlayers(playerId)
 	l.removeFromTeams(playerId)

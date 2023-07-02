@@ -22,7 +22,7 @@ export default function LobbyPage() {
     const teams = useObservableState(playerStore.teams$, []);
 
     function connect() {
-        const lobbyId = sessionStorage.getItem('lobbyId') // find out how to keep this from failing in the next server
+        const lobbyId = sessionStorage.getItem('lobbyId')
         if (!lobbyId) {
             console.error('Could not fetch lobbyId from session storage. Navigating back to home page');
             // TODO: show an error message to the user once they get back to the homepage.
@@ -30,13 +30,16 @@ export default function LobbyPage() {
         }
         setLobbyId(lobbyId)
 
-        conn = new WebSocket(`wss://api.saladbowl.bensivo.com/lobbies/${lobbyId}/connect`)
+        const playerId = sessionStorage.getItem('playerId')
+
+        conn = new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
         conn.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             console.log('Received message', msg)
 
             switch (msg.event) {
                 case 'notification.player-id':
+                    sessionStorage.setItem('playerId', msg.payload.playerId);
                     setMyPlayerId(msg.payload.playerId)
                     break;
                 case 'state.player-list':

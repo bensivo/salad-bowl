@@ -42,8 +42,13 @@ func StartGorillaServer(svc *lobby.LobbyService) {
 		playerChannel := &adapters.WebsocketPlayerChannel{
 			Conn: conn,
 		}
+		playerId := r.URL.Query().Get("playerId")
 
-		l.Hub.HandleNewConnection(playerChannel)
+		if playerId != "" {
+			l.Hub.HandleReconnection(playerChannel, playerId)
+		} else {
+			l.Hub.HandleNewConnection(playerChannel)
+		}
 	})
 
 	r.HandleFunc("/lobbies", func(w http.ResponseWriter, r *http.Request) {

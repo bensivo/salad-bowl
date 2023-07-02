@@ -22,7 +22,8 @@ type Hub interface {
 	OnPlayerDisconnect(cb PlayerDisconnectCallback)
 	OnMessage(cb PlayerMessageCallback)
 
-	HandleNewConnection(playerChannel PlayerChannel)
+	HandleNewConnection(playerChannel PlayerChannel)                 // Add a player connection to the hub, generating a playerId
+	HandleReconnection(playerChannel PlayerChannel, playerId string) // Add a player connection, using an existing playerId
 }
 
 type NewConnectionCallback func(playerId string)
@@ -56,10 +57,32 @@ func (h *HubImpl) OnMessage(cb PlayerMessageCallback) {
 	h.playerMessageCallback = cb
 }
 
+func (h *HubImpl) HandleReconnection(playerChannel PlayerChannel, playerId string) {
+	fmt.Printf("Reconnection from player ID: %s\n", playerId)
+
+	existingPlayerChannel, exists := h.PlayerChannels[playerId]
+	if exists {
+		fmt.Printf("Removing old channel for player ID: %s\n", playerId)
+		err := existingPlayerChannel.Close()
+		if err != nil {
+			fmt.Printf("Error closing existing player channel %s: %v\n", playerId, err)
+		}
+
+		delete(h.PlayerChannels, playerId)
+		h.disconnectCallback(playerId)
+	}
+
+	h.addPlayerConnection(playerChannel, playerId)
+}
+
 func (h *HubImpl) HandleNewConnection(playerChannel PlayerChannel) {
 	playerId := util.RandStringId()
-	fmt.Printf("New player connection. Assigning ID %s\n", playerId)
+	fmt.Printf("New player connection. Assigning ID: %s\n", playerId)
 
+	h.addPlayerConnection(playerChannel, playerId)
+}
+
+func (h *HubImpl) addPlayerConnection(playerChannel PlayerChannel, playerId string) {
 	h.PlayerChannels[playerId] = playerChannel
 
 	playerChannel.OnDisconnect(func() {

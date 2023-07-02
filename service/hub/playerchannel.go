@@ -15,4 +15,6 @@ type PlayerChannel interface {
 
 	// OnDisconnect adds a callback for disconnect events on this channel
 	OnDisconnect(cb DisconnectCallback)
+
+	Close() error
 }

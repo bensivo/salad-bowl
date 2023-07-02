@@ -17,6 +17,47 @@ func (_m *MockPlayerChannel) EXPECT() *MockPlayerChannel_Expecter {
 	return &MockPlayerChannel_Expecter{mock: &_m.Mock}
 }
 
+// Close provides a mock function with given fields:
+func (_m *MockPlayerChannel) Close() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockPlayerChannel_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type MockPlayerChannel_Close_Call struct {
+	*mock.Call
+}
+
+// Close is a helper method to define mock.On call
+func (_e *MockPlayerChannel_Expecter) Close() *MockPlayerChannel_Close_Call {
+	return &MockPlayerChannel_Close_Call{Call: _e.mock.On("Close")}
+}
+
+func (_c *MockPlayerChannel_Close_Call) Run(run func()) *MockPlayerChannel_Close_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockPlayerChannel_Close_Call) Return(_a0 error) *MockPlayerChannel_Close_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockPlayerChannel_Close_Call) RunAndReturn(run func() error) *MockPlayerChannel_Close_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OnDisconnect provides a mock function with given fields: cb
 func (_m *MockPlayerChannel) OnDisconnect(cb DisconnectCallback) {
 	_m.Called(cb)

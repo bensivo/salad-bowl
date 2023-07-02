@@ -92,6 +92,40 @@ func (_c *MockHub_HandleNewConnection_Call) RunAndReturn(run func(PlayerChannel)
 	return _c
 }
 
+// HandleReconnection provides a mock function with given fields: playerChannel, playerId
+func (_m *MockHub) HandleReconnection(playerChannel PlayerChannel, playerId string) {
+	_m.Called(playerChannel, playerId)
+}
+
+// MockHub_HandleReconnection_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandleReconnection'
+type MockHub_HandleReconnection_Call struct {
+	*mock.Call
+}
+
+// HandleReconnection is a helper method to define mock.On call
+//   - playerChannel PlayerChannel
+//   - playerId string
+func (_e *MockHub_Expecter) HandleReconnection(playerChannel interface{}, playerId interface{}) *MockHub_HandleReconnection_Call {
+	return &MockHub_HandleReconnection_Call{Call: _e.mock.On("HandleReconnection", playerChannel, playerId)}
+}
+
+func (_c *MockHub_HandleReconnection_Call) Run(run func(playerChannel PlayerChannel, playerId string)) *MockHub_HandleReconnection_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(PlayerChannel), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockHub_HandleReconnection_Call) Return() *MockHub_HandleReconnection_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockHub_HandleReconnection_Call) RunAndReturn(run func(PlayerChannel, string)) *MockHub_HandleReconnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OnMessage provides a mock function with given fields: cb
 func (_m *MockHub) OnMessage(cb PlayerMessageCallback) {
 	_m.Called(cb)
