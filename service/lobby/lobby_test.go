@@ -17,16 +17,16 @@ func TestLobby_NewConnection_SendsPlayerId(t *testing.T) {
 	l := lobby.NewLobby(mockHub)
 
 	// When a player is added
-	l.HandleNewConnection("000-000")
+	l.HandleNewConnection("player-id")
 
 	// Then the player receives an ID
 	expected := hub.Message{
 		Event: "notification.player-id",
 		Payload: map[string]interface{}{
-			"playerId": "000-000",
+			"playerId": "player-id",
 		},
 	}
-	mockHub.AssertCalled(t, "SendTo", "000-000", expected)
+	mockHub.AssertCalled(t, "SendTo", "player-id", expected)
 }
 
 func TestLobby_NewConnection_BroadcastsPlayerList(t *testing.T) {
@@ -45,7 +45,48 @@ func TestLobby_NewConnection_BroadcastsPlayerList(t *testing.T) {
 	expected := hub.Message{
 		Event: "state.player-list",
 		Payload: map[string]interface{}{
-			"players": []string{"000-000", "111-111"},
+			"players": []map[string]interface{}{
+				{
+					"id":     "000-000",
+					"status": "online",
+				},
+				{
+					"id":     "111-111",
+					"status": "online",
+				},
+			},
+		},
+	}
+	mockHub.AssertCalled(t, "Broadcast", expected)
+}
+
+func TestLobby_Disconnect_BroadcastsPlayerOffline(t *testing.T) {
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+	mockHub.On("Broadcast", mock.Anything).Return(nil)
+
+	// Given a new l, with 2 players
+	l := lobby.NewLobby(mockHub)
+	l.HandleNewConnection("000-000")
+	l.HandleNewConnection("111-111")
+
+	// When a player disconnects
+	l.HandlePlayerDisconnect("000-000")
+
+	// Then the player list is sent out, and player 000-000 is now offline
+	expected := hub.Message{
+		Event: "state.player-list",
+		Payload: map[string]interface{}{
+			"players": []map[string]interface{}{
+				{
+					"id":     "000-000",
+					"status": "offline",
+				},
+				{
+					"id":     "111-111",
+					"status": "online",
+				},
+			},
 		},
 	}
 	mockHub.AssertCalled(t, "Broadcast", expected)

@@ -1,9 +1,13 @@
 import { Store, createStore, select, setProp, withProps } from "@ngneat/elf";
 import { map } from 'rxjs';
 
+export interface Player {
+    id: string;
+    status: 'online' | 'offline';
+}
 export interface PlayerState {
-    players: string[];
-    teams: string[][];
+    players: Player[];
+    teams: Player[][];
 }
 
 export class PlayerStore {
@@ -22,7 +26,7 @@ export class PlayerStore {
         select(s => s.teams)
     );
 
-    setPlayers(players: string[]) {
+    setPlayers(players: Player[]) {
         console.log('Setting players', players)
         this.store.update(s => ({
             ...s,
@@ -31,7 +35,7 @@ export class PlayerStore {
 
     }
 
-    setTeams(teams: string[][]) {
+    setTeams(teams: Player[][]) {
         this.store.update(setProp('teams', teams));
     }
 }

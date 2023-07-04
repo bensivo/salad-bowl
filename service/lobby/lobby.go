@@ -5,9 +5,11 @@ import (
 	"time"
 
 	"github.com/bensivo/salad-bowl/hub"
+	"github.com/bensivo/salad-bowl/util"
 )
 
 type Lobby struct {
+	ID            string
 	Hub           hub.Hub
 	Players       []*Player
 	TeamPlayerIds [][]string
@@ -15,11 +17,14 @@ type Lobby struct {
 }
 
 func NewLobby(hub hub.Hub) *Lobby {
+	lobbyId := util.RandStringId()
+
 	teams := make([][]string, 2)
 	teams[0] = []string{}
 	teams[1] = []string{}
 
 	return &Lobby{
+		ID:            lobbyId,
 		Hub:           hub,
 		Players:       []*Player{},
 		TeamPlayerIds: teams, // length 2 array of strings, representing playerIds
@@ -48,8 +53,19 @@ func (l *Lobby) HandleNewConnection(playerId string) {
 	}
 	l.Hub.SendTo(playerId, welcomeMsg)
 
-	player := NewPlayer(playerId)
-	l.Players = append(l.Players, player)
+	isExistingPlayer := false
+	for i := 0; i < len(l.Players); i++ {
+		if l.Players[i].Id == playerId {
+			l.Players[i].Status = "online"
+			isExistingPlayer = true
+			break
+		}
+	}
+
+	if !isExistingPlayer {
+		player := NewPlayer(playerId)
+		l.Players = append(l.Players, player)
+	}
 
 	l.broadcastPlayerList()
 	l.broadcastTeams()
@@ -61,11 +77,14 @@ func (l *Lobby) HandlePlayerDisconnect(playerId string) {
 	// If we keep them, we probably need the host to be able to remove idle players.
 	// If not, they could lose all their game state, esp if the game has already started.
 
-	l.removeFromPlayers(playerId)
-	l.removeFromTeams(playerId)
+	for i := 0; i < len(l.Players); i++ {
+		player := l.Players[i]
+		if player.Id == playerId {
+			l.Players[i].Status = "offline"
+		}
+	}
 
 	l.broadcastPlayerList()
-	l.broadcastTeams()
 }
 
 func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
@@ -110,15 +129,18 @@ func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
 }
 
 func (l *Lobby) broadcastPlayerList() {
-	playerList := make([]string, len(l.Players))
-	for i := 0; i < len(l.Players); i++ {
-		playerList[i] = l.Players[i].Id
+	players := []map[string]interface{}{}
+	for _, player := range l.Players {
+		players = append(players, map[string]interface{}{
+			"id":     player.Id,
+			"status": player.Status,
+		})
 	}
 
 	playerListMsg := hub.Message{
 		Event: "state.player-list",
 		Payload: map[string]interface{}{
-			"players": playerList,
+			"players": players,
 		},
 	}
 	l.Hub.Broadcast(playerListMsg)
@@ -142,8 +164,8 @@ func (l *Lobby) removeFromPlayers(playerId string) {
 		}
 	}
 }
+
 func (l *Lobby) removeFromTeams(playerId string) {
-	// Remove player from all teams, so we don't end up with duplicate entries
 	team0 := l.TeamPlayerIds[0]
 	team1 := l.TeamPlayerIds[1]
 	for i, v := range team0 {

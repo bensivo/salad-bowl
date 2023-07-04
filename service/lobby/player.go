@@ -3,11 +3,14 @@ package lobby
 // Player represents one device connected to the game server, which
 // sends and receives messages in real-time related to the game logic.
 type Player struct {
-	Id string
+	Id     string `json:"id"`
+	Status string `json:"status"` // online, offline, idle, away
+	Team   int    `json:"team"`
 }
 
 func NewPlayer(id string) *Player {
 	return &Player{
-		Id: id,
+		Id:     id,
+		Status: "online",
 	}
 }

@@ -58,11 +58,16 @@ describe('Connect', () => {
         const lobbyId = await createLobby();
         const { conn, messageCb } = await connect(lobbyId);
 
+        const playerId = getPlayerId(messageCb);
+
         await waitForExpect(() => {
             expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({
                 event: 'state.player-list',
                 payload: {
-                    players: expect.anything(),
+                    players: expect.arrayContaining([{
+                        id: playerId,
+                        status: 'online'
+                    }])
                 }
             }));
         });

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/bensivo/salad-bowl/hub"
-	"github.com/bensivo/salad-bowl/util"
 )
 
 type LobbyService struct {
@@ -30,7 +29,7 @@ func (svc *LobbyService) CreateNewLobby() (string, error) {
 	newLobby := NewLobby(newHub)
 	newLobby.Start()
 
-	lobbyId := util.RandStringId()
+	lobbyId := newLobby.ID
 	svc.lobbies[lobbyId] = newLobby
 
 	fmt.Printf("Created new lobby with id: %s\n", lobbyId)
@@ -59,15 +58,22 @@ func (svc *LobbyService) GetLobbies() map[string]*Lobby {
 // Cleanup deletes all lobbies that have no players, and are more than 30 seconds old
 func (svc *LobbyService) Cleanup() {
 	now := time.Now()
+lobbies:
 	for id, lobby := range svc.lobbies {
-		if len(lobby.Players) > 0 {
-			continue
+		// Don't remove lobbies with at least 1 online player
+		for _, player := range lobby.Players {
+			if player.Status == "online" {
+				continue lobbies
+			}
 		}
 
-		if now.Sub(lobby.CreatedAt) > time.Duration(30*time.Second) {
-			fmt.Printf("Deleting empty lobby %s, created at %s\n", id, lobby.CreatedAt)
-			delete(svc.lobbies, id)
+		// Don't remove brand new lobbies. Here, "brand new" was arbitrarily set to 30 seconds. May realize this needs to be longer in the future.
+		if now.Sub(lobby.CreatedAt) < time.Duration(30*time.Second) {
+			continue lobbies
 		}
+
+		fmt.Printf("Deleting empty lobby %s, created at %s\n", id, lobby.CreatedAt)
+		delete(svc.lobbies, id)
 	}
 }
 
