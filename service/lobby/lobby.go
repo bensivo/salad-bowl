@@ -9,11 +9,10 @@ import (
 )
 
 type Lobby struct {
-	ID            string
-	Hub           hub.Hub
-	Players       []*Player
-	TeamPlayerIds [][]string
-	CreatedAt     time.Time
+	ID        string
+	Hub       hub.Hub
+	Players   []*Player
+	CreatedAt time.Time
 }
 
 func NewLobby(hub hub.Hub) *Lobby {
@@ -24,11 +23,10 @@ func NewLobby(hub hub.Hub) *Lobby {
 	teams[1] = []string{}
 
 	return &Lobby{
-		ID:            lobbyId,
-		Hub:           hub,
-		Players:       []*Player{},
-		TeamPlayerIds: teams, // length 2 array of strings, representing playerIds
-		CreatedAt:     time.Now(),
+		ID:        lobbyId,
+		Hub:       hub,
+		Players:   []*Player{},
+		CreatedAt: time.Now(),
 	}
 }
 
@@ -68,15 +66,10 @@ func (l *Lobby) HandleNewConnection(playerId string) {
 	}
 
 	l.broadcastPlayerList()
-	l.broadcastTeams()
 }
 
 func (l *Lobby) HandlePlayerDisconnect(playerId string) {
 	fmt.Printf("Player %s disconnected\n", playerId)
-	// TODO: should we completely remove them on disconnect, or keep them and show idle?
-	// If we keep them, we probably need the host to be able to remove idle players.
-	// If not, they could lose all their game state, esp if the game has already started.
-
 	for i := 0; i < len(l.Players); i++ {
 		player := l.Players[i]
 		if player.Id == playerId {
@@ -109,9 +102,14 @@ func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
 			return
 		}
 
-		l.removeFromTeams(playerId)
+		for i, player := range l.Players {
+			if player.Id == playerId {
+				l.Players[i].Team = team
+				break
+			}
+		}
+		// TODO: what if playerId not found, maybe we update the data struct to a map to help
 
-		l.TeamPlayerIds[team] = append(l.TeamPlayerIds[team], playerId)
 		l.Hub.SendTo(playerId, hub.Message{
 			Event: "response.join-team",
 			Payload: map[string]interface{}{
@@ -121,7 +119,7 @@ func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
 			},
 		})
 
-		l.broadcastTeams()
+		l.broadcastPlayerList()
 
 	default:
 		fmt.Printf("Unknown event %s\n", message.Event)
@@ -134,6 +132,7 @@ func (l *Lobby) broadcastPlayerList() {
 		players = append(players, map[string]interface{}{
 			"id":     player.Id,
 			"status": player.Status,
+			"team":   player.Team,
 		})
 	}
 
@@ -146,42 +145,12 @@ func (l *Lobby) broadcastPlayerList() {
 	l.Hub.Broadcast(playerListMsg)
 }
 
-func (l *Lobby) broadcastTeams() {
-	l.Hub.Broadcast(hub.Message{
-		Event: "state.teams",
-		Payload: map[string]interface{}{
-			"teams": l.TeamPlayerIds,
-		},
-	})
-}
-
 func (l *Lobby) removeFromPlayers(playerId string) {
 	for i := 0; i < len(l.Players); i++ {
 		if l.Players[i].Id == playerId {
 			l.Players[i] = l.Players[len(l.Players)-1]
 			l.Players = l.Players[:len(l.Players)-1]
 			break
-		}
-	}
-}
-
-func (l *Lobby) removeFromTeams(playerId string) {
-	team0 := l.TeamPlayerIds[0]
-	team1 := l.TeamPlayerIds[1]
-	for i, v := range team0 {
-		if v == playerId {
-			fmt.Printf("Removing player %s from team %d\n", playerId, 0)
-			team0[i] = team0[len(team0)-1]
-			team0 = team0[:len(team0)-1]
-			l.TeamPlayerIds[0] = team0
-		}
-	}
-	for i, v := range team1 {
-		if v == playerId {
-			fmt.Printf("Removing player %s from team %d\n", playerId, 1)
-			team1[i] = team1[len(team1)-1]
-			team1 = team1[:len(team1)-1]
-			l.TeamPlayerIds[1] = team1
 		}
 	}
 }

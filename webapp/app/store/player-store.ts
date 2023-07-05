@@ -1,9 +1,10 @@
-import { Store, createStore, select, setProp, withProps } from "@ngneat/elf";
+import { createStore, select, setProp, withProps } from "@ngneat/elf";
 import { map } from 'rxjs';
 
 export interface Player {
     id: string;
     status: 'online' | 'offline';
+    team: number;
 }
 export interface PlayerState {
     players: Player[];
@@ -15,7 +16,7 @@ export class PlayerStore {
             name: 'message'
         }, withProps<PlayerState>({
            players: [],
-           teams: [],
+           teams: [[], []],
         }));
 
     players$ = this.store.pipe(
@@ -27,16 +28,21 @@ export class PlayerStore {
     );
 
     setPlayers(players: Player[]) {
-        console.log('Setting players', players)
+        const teams: Player[][] = [[],[]];
+
+        for(const player of players) {
+            if (player.team == 0 || player.team == 1) {
+                teams[player.team].push(player)
+            } else {
+                console.error(`Cannot put player ${player.id} in team ${player.team}. Only teams 0 and 1 are allowed`)
+            }
+        }
+
         this.store.update(s => ({
-            ...s,
             players,
+            teams,
         }))
 
-    }
-
-    setTeams(teams: Player[][]) {
-        this.store.update(setProp('teams', teams));
     }
 }
 

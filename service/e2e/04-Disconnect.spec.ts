@@ -24,6 +24,7 @@ describe('Disconnect', () => {
                     players: expect.arrayContaining([{
                         id: playerId2,
                         status: 'online',
+                        team: 0,
                     }])
                 }
             }))
@@ -34,13 +35,14 @@ describe('Disconnect', () => {
         // When player 2 disconnects
         await disconnect(conn2);
 
-        // Then player 1 receives an updated player list without player 2
+        // Then player 1 receives an updated player list with player 2 set offline
         await waitForExpect(() => {
             expect(messageCb1).toHaveBeenCalledWith(expect.objectContaining({
                 payload: {
                     players: expect.arrayContaining([{
                         id: playerId2,
                         status: 'offline',
+                        team: 0,
                     }])
                 }
             }))

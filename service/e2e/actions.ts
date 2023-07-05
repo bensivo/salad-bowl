@@ -6,7 +6,7 @@ import WebSocket from 'ws';
 export async function createLobby(): Promise<string> {
     const createRes = await axios.request({
         method: 'POST',
-        url: 'http://localhost:8080/lobbies',
+        url: 'https://api.saladbowl.bensivo.com/lobbies',
         data: {}
     });
 
@@ -14,7 +14,7 @@ export async function createLobby(): Promise<string> {
 
     const getRes = await axios.request({
         method: 'GET',
-        url: 'http://localhost:8080/lobbies'
+        url: 'https://api.saladbowl.bensivo.com/lobbies'
     })
 
     expect(getRes.data[lobbyId]).toBeTruthy();
@@ -28,9 +28,9 @@ export async function connect(lobbyId: string, playerId?: string): Promise<{ con
     const messageCb = jest.fn();
 
     conn = !!playerId ?
-        new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect?playerId=${playerId}`)
+        new WebSocket(`wss://api.saladbowl.bensivo.com/lobbies/${lobbyId}/connect?playerId=${playerId}`)
         :
-        new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect`)
+        new WebSocket(`wss://api.saladbowl.bensivo.com/lobbies/${lobbyId}/connect`)
         ;
     conn.onopen = openCb;
     conn.onmessage = (event) => {

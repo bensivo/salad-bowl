@@ -60,3 +60,6 @@ body {
     text-align: left;
     padding: 1rem;
 }
+#lobby li.player-offline {
+    text-decoration: line-through;
+}

@@ -49,10 +49,12 @@ func TestLobby_NewConnection_BroadcastsPlayerList(t *testing.T) {
 				{
 					"id":     "000-000",
 					"status": "online",
+					"team":   0,
 				},
 				{
 					"id":     "111-111",
 					"status": "online",
+					"team":   0,
 				},
 			},
 		},
@@ -81,10 +83,12 @@ func TestLobby_Disconnect_BroadcastsPlayerOffline(t *testing.T) {
 				{
 					"id":     "000-000",
 					"status": "offline",
+					"team":   0,
 				},
 				{
 					"id":     "111-111",
 					"status": "online",
+					"team":   0,
 				},
 			},
 		},
@@ -128,20 +132,20 @@ func TestLobby_TeamRequest_Success(t *testing.T) {
 
 func TestLobby_TeamRequest_StateUpdate(t *testing.T) {
 
-	h := hub.NewMockHub(t)
-	h.On("OnNewConnection", mock.Anything).Return()
-	h.On("OnMessage", mock.Anything).Return()
-	h.On("OnPlayerDisconnect", mock.Anything).Return()
-	h.On("SendTo", mock.Anything, mock.Anything).Return(nil)
-	h.On("Broadcast", mock.Anything).Return(nil)
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("OnNewConnection", mock.Anything).Return()
+	mockHub.On("OnMessage", mock.Anything).Return()
+	mockHub.On("OnPlayerDisconnect", mock.Anything).Return()
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+	mockHub.On("Broadcast", mock.Anything).Return(nil)
 
 	// given a new game, with 2 players
-	l := lobby.NewLobby(h)
+	l := lobby.NewLobby(mockHub)
 	l.Start()
 	l.HandleNewConnection("000-000")
 	l.HandleNewConnection("111-111")
 
-	// each player joins a team
+	// When each player joins a team
 	l.HandleMessage("000-000", hub.Message{
 		Event: "request.join-team",
 		Payload: map[string]interface{}{
@@ -157,14 +161,24 @@ func TestLobby_TeamRequest_StateUpdate(t *testing.T) {
 		},
 	})
 
-	// then the game sends the team list to everyone
-	h.AssertCalled(t, "Broadcast", hub.Message{
-		Event: "state.teams",
+	// Then the player list is sent out, with players on appropriate teams
+	expected := hub.Message{
+		Event: "state.player-list",
 		Payload: map[string]interface{}{
-			"teams": [][]string{
-				{"000-000"},
-				{"111-111"},
+			"players": []map[string]interface{}{
+				{
+					"id":     "000-000",
+					"status": "online",
+					"team":   0,
+				},
+				{
+					"id":     "111-111",
+					"status": "online",
+					"team":   1,
+				},
 			},
 		},
-	})
+	}
+
+	mockHub.AssertCalled(t, "Broadcast", expected)
 }

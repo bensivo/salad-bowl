@@ -32,7 +32,7 @@ export default function LobbyPage() {
 
         const playerId = sessionStorage.getItem('playerId')
 
-        conn = new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
+        conn = new WebSocket(`wss://api.saladbowl.bensivo.com/lobbies/${lobbyId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
         conn.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             console.log('Received message', msg)
@@ -44,9 +44,6 @@ export default function LobbyPage() {
                     break;
                 case 'state.player-list':
                     playerStore.setPlayers(msg.payload.players)
-                    break;
-                case 'state.teams':
-                    playerStore.setTeams(msg.payload.teams)
                     break;
             }
         }
@@ -81,8 +78,8 @@ export default function LobbyPage() {
                                 <button onClick={() => joinTeam(i)}> Join Team </button>
                             </div>
                             <ul>
-                                {team.map(playerId => (
-                                    <li key={playerId}>{playerId === myPlayerId ? `${playerId} (me)` : playerId}</li>
+                                {team.map(player => (
+                                    <li className={`${player.status == 'offline' ? 'player-offline' : ''}`} key={player.id}>{player.id === myPlayerId ? `${player.id} (me)` : player.id}</li>
                                 ))}
                             </ul>
                         </div>

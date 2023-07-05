@@ -66,7 +66,8 @@ describe('Connect', () => {
                 payload: {
                     players: expect.arrayContaining([{
                         id: playerId,
-                        status: 'online'
+                        status: 'online',
+                        team: 0,
                     }])
                 }
             }));

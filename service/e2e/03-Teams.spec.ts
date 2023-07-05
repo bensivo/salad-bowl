@@ -20,7 +20,7 @@ describe('Teams', () => {
         });
 
 
-        it('should send team list', async () => {
+        it('should send updated player list', async () => {
             const { conn, messageCb } = await connect(lobbyId);
 
             const playerId = getPlayerId(messageCb);
@@ -29,12 +29,15 @@ describe('Teams', () => {
 
             await waitForExpect(() => {
                 expect(messageCb).toHaveBeenCalledWith({
-                    event: "state.teams",
+                    event: "state.player-list",
                     payload: {
-                        "teams": [
-                            expect.anything(),
-                            expect.arrayContaining([playerId]),
-                        ],
+                        "players": expect.arrayContaining([
+                            {
+                                id: playerId,
+                                status: 'online',
+                                team: 1,
+                            }
+                        ])
                     }
                 });
             })
@@ -53,12 +56,15 @@ describe('Teams', () => {
 
             await waitForExpect(() => {
                 expect(messageCb).toHaveBeenCalledWith({
-                    event: "state.teams",
+                    event: "state.player-list",
                     payload: {
-                        "teams": [
-                            expect.anything(),
-                            expect.arrayContaining([playerId]),
-                        ],
+                        "players": expect.arrayContaining([
+                            {
+                                id: playerId,
+                                status: 'online',
+                                team: 1,
+                            }
+                        ])
                     }
                 });
             })
@@ -67,12 +73,15 @@ describe('Teams', () => {
 
             await waitForExpect(() => {
                 expect(messageCb).toHaveBeenCalledWith({
-                    event: "state.teams",
+                    event: "state.player-list",
                     payload: {
-                        "teams": [
-                            expect.arrayContaining([playerId]),
-                            expect.not.arrayContaining([playerId]),
-                        ],
+                        "players": expect.arrayContaining([
+                            {
+                                id: playerId,
+                                status: 'online',
+                                team: 0,
+                            }
+                        ])
                     }
                 });
             })

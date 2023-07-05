@@ -126,8 +126,9 @@ GOOS=linux GOARCH=amd64 go build -o saladbowl-service ./main.go
 
 IP=saladbowl.bensivo.com
 ssh bensivo@$IP "mkdir -p /home/bensivo/bin"
+ssh -t bensivo@IP "sudo systemctl stop saladbowl-service"
 scp ./saladbowl-service bensivo@$IP:/home/bensivo/bin/
-ssh -t bensivo@72.14.184.25 "sudo systemctl restart saladbowl-service"
+ssh -t bensivo@IP "sudo systemctl restart saladbowl-service"
 ```
 
 ### Webapp

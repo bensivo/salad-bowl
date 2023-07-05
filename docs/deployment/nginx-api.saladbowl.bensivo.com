@@ -8,12 +8,12 @@ server {
     server_name api.saladbowl.bensivo.com;
 
     location / {
-	proxy_pass http://localhost:8080;
+	proxy_pass https://api.saladbowl.bensivo.com;
     }
 
     # Special handling for our websocket connection routes
     location ~ /lobbies/.*/connect {
-        proxy_pass http://localhost:8080;
+        proxy_pass https://api.saladbowl.bensivo.com;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "Upgrade";
