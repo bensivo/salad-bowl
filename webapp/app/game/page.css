@@ -1,0 +1,47 @@
+body {
+    background-color: #2A453D
+}
+
+#game .card {
+    background-color: white;
+    border-radius: .5rem;
+    padding: 1rem;
+}
+
+#game .content-main {
+    width: 80%;
+    margin: auto;
+
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    max-width: 25rem;
+
+    text-align: center;
+    color: #2A453D;
+}
+
+#game input {
+    margin-bottom: 1rem;
+    border-color: #CF8764;
+    border-style: solid;
+    border-radius: .25rem;
+    padding: 0 .5rem;
+}
+
+#game button {
+    width: 100%;
+    padding: .5rem 1rem;
+    border: none;
+    border-radius: .25rem;
+
+    background-color: #CF8764;
+    color: #F4F4EF;
+    box-shadow: 0 10px 20px -12px rgba(0, 0, 0, 0.42), 0 3px 20px 0px rgba(0, 0, 0, 0.12), 0 8px 10px -5px rgba(0, 0, 0, 0.2);
+
+    cursor: pointer;
+}
+
+#game #button button:hover {
+    background-color: #ca8e70;
+    color: #F4F4EF;
+}

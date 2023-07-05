@@ -121,6 +121,26 @@ func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
 
 		l.broadcastPlayerList()
 
+	case "request.start-game":
+		fmt.Printf("Player %s requesting to start the game\n", playerId)
+
+		requestId := message.Payload["requestId"].(string)
+
+		l.Hub.SendTo(playerId, hub.Message{
+			Event: "response.start-game",
+			Payload: map[string]interface{}{
+				"requestId":   requestId,
+				"status":      "success",
+				"description": "Game starting",
+			},
+		})
+
+		l.Hub.Broadcast(hub.Message{
+			Event:   "notification.game-started",
+			Payload: map[string]interface{}{},
+		})
+		return
+
 	default:
 		fmt.Printf("Unknown event %s\n", message.Event)
 	}

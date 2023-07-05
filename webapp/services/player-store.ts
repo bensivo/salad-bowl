@@ -1,5 +1,4 @@
-import { createStore, select, setProp, withProps } from "@ngneat/elf";
-import { map } from 'rxjs';
+import { createStore, select, withProps } from "@ngneat/elf";
 
 export interface Player {
     id: string;
@@ -18,10 +17,6 @@ export class PlayerStore {
            players: [],
            teams: [[], []],
         }));
-
-    players$ = this.store.pipe(
-        map(s => s.players)
-    );
 
     teams$ = this.store.pipe(
         select(s => s.teams)

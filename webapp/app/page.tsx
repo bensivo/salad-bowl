@@ -5,16 +5,16 @@ import { CharInput } from '../components/char-input';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import './page.css';
+import { HTTP_URL } from './constants';
 
 export default function HomePage() {
-
     const router  = useRouter();
     const [joinCode, setJoinCode] = useState('');
 
     const onClickNewGame = async () => {
         const res = await axios.request({
             method: 'post',
-            url: 'https://api.saladbowl.bensivo.com/lobbies',
+            url: `${HTTP_URL}/lobbies`,
         })
 
         // TODO: error notification on failure
@@ -33,7 +33,7 @@ export default function HomePage() {
 
         const res = await axios.request({
             method: 'get',
-            url: 'https://api.saladbowl.bensivo.com/lobbies',
+            url: `${HTTP_URL}/lobbies`,
         });
         if (!res.data[joinCode]) {
             console.error(`Lobby ${joinCode} not found`)
