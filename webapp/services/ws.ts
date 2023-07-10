@@ -6,7 +6,7 @@ var conn: WebSocket;
 var messages = new Subject();
 export var messages$ = messages.asObservable();
 
-export function connect() {
+export function init() {
     if (conn !== undefined) {
         return;
     }
@@ -38,7 +38,7 @@ export function send(msg: string) {
 
 const ws = {
     messages$,
-    connect,
+    init,
     send,
 }
 export default ws;

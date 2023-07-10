@@ -11,29 +11,22 @@ import './page.css';
 export default function LobbyPage() {
     const router = useRouter();
     const [lobbyId, setLobbyId] = useState<string | null>('');
-    const [myPlayerId, setMyPlayerId] = useState<string>('');
+    const teams = useObservableState(playerStore.teams$, []);
+    const myPlayerId = useObservableState(playerStore.myPlayerId$, '')
 
     useEffect(() => {
         init();
     }, []) // passing an empty array in the second arg makes this effect only run once
 
-    const teams = useObservableState(playerStore.teams$, []);
-
     function init() {
         const lobbyId = sessionStorage.getItem('lobbyId')
         setLobbyId(lobbyId);
 
-        ws.connect();
+        ws.init();
+        playerStore.init();
 
         ws.messages$.subscribe((msg: any) => {
             switch (msg.event) {
-                case 'notification.player-id':
-                    sessionStorage.setItem('playerId', msg.payload.playerId);
-                    setMyPlayerId(msg.payload.playerId)
-                    break;
-                case 'state.player-list':
-                    playerStore.setPlayers(msg.payload.players)
-                    break;
                 case 'notification.game-started':
                     router.push('/game') // TODO: put all the instance-specific pages on the same sub-page. Prevent routing
             }

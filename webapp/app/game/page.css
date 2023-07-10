@@ -45,3 +45,11 @@ body {
     background-color: #ca8e70;
     color: #F4F4EF;
 }
+
+
+#game .player-words{
+    text-align: left;
+}
+#game .submitted-word:not(:last-child)::after{
+    content: ', ';
+}

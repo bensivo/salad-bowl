@@ -1,4 +1,5 @@
 import { createStore, select, withProps } from "@ngneat/elf";
+import ws from "./ws";
 
 export interface Player {
     id: string;
@@ -6,26 +7,64 @@ export interface Player {
     team: number;
 }
 export interface PlayerState {
+    myPlayerId: string;
     players: Player[];
     teams: Player[][];
 }
 
+// TODO: This store is only updated from the lobby page. 
+// IF the user refreshes on the wordbank page, this store doesn't get any updates. We need to move the state updates from messages into some shared component.
 export class PlayerStore {
+    initialized = false;
+
     private store = createStore({
-            name: 'message'
-        }, withProps<PlayerState>({
-           players: [],
-           teams: [[], []],
-        }));
+        name: 'message'
+    }, withProps<PlayerState>({
+        myPlayerId: '',
+        players: [],
+        teams: [[], []],
+    }));
+
+
+    myPlayerId$ = this.store.pipe(
+        select(s => s.myPlayerId)
+    );
 
     teams$ = this.store.pipe(
         select(s => s.teams)
     );
 
-    setPlayers(players: Player[]) {
-        const teams: Player[][] = [[],[]];
+    players$ = this.store.pipe(
+        select(s => s.players)
+    );
 
-        for(const player of players) {
+    init() {
+        if (this.initialized) {
+            return;
+        }
+        this.initialized = true;
+
+        ws.messages$.subscribe((msg: any) => {
+            switch (msg.event) {
+                case 'notification.player-id':
+                    sessionStorage.setItem('playerId', msg.payload.playerId);
+                    this.store.update(s => ({
+                        ...s,
+                        myPlayerId: msg.payload.playerId,
+                    }));
+                    break;
+                case 'state.player-list':
+                    playerStore.setPlayers(msg.payload.players)
+                    break;
+            }
+        });
+
+    }
+
+    setPlayers(players: Player[]) {
+        const teams: Player[][] = [[], []];
+
+        for (const player of players) {
             if (player.team == 0 || player.team == 1) {
                 teams[player.team].push(player)
             } else {
@@ -34,10 +73,10 @@ export class PlayerStore {
         }
 
         this.store.update(s => ({
+            ...s,
             players,
             teams,
-        }))
-
+        }));
     }
 }
 

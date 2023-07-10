@@ -8,11 +8,20 @@ import (
 	"github.com/bensivo/salad-bowl/util"
 )
 
+// SubmittedWord is a game-state DTO, represents a word submitted by a player to the word bank
+type SubmittedWord struct {
+	Word     string `json:"word"`
+	PlayerId string `json:"playerId"`
+}
+
+// Lobby contains all the state related to a single instance of salad bowl being played
 type Lobby struct {
-	ID        string
-	Hub       hub.Hub
-	Players   []*Player
-	CreatedAt time.Time
+	ID             string
+	Hub            hub.Hub
+	Players        []*Player
+	CreatedAt      time.Time
+	SubmittedWords []SubmittedWord
+	// TODO add a 'phase' parameter, indicating what screen players should be seeing. To help with disconnects, or late joiner
 }
 
 func NewLobby(hub hub.Hub) *Lobby {
@@ -23,10 +32,11 @@ func NewLobby(hub hub.Hub) *Lobby {
 	teams[1] = []string{}
 
 	return &Lobby{
-		ID:        lobbyId,
-		Hub:       hub,
-		Players:   []*Player{},
-		CreatedAt: time.Now(),
+		ID:             lobbyId,
+		Hub:            hub,
+		Players:        []*Player{},
+		CreatedAt:      time.Now(),
+		SubmittedWords: []SubmittedWord{},
 	}
 }
 
@@ -66,6 +76,13 @@ func (l *Lobby) HandleNewConnection(playerId string) {
 	}
 
 	l.broadcastPlayerList()
+
+	l.Hub.SendTo(playerId, hub.Message{
+		Event: "state.word-bank",
+		Payload: map[string]interface{}{
+			"submittedWords": l.SubmittedWords,
+		},
+	})
 }
 
 func (l *Lobby) HandlePlayerDisconnect(playerId string) {
@@ -81,7 +98,7 @@ func (l *Lobby) HandlePlayerDisconnect(playerId string) {
 }
 
 func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
-	fmt.Printf("Received message from player %s: %v", playerId, message)
+	fmt.Printf("Received message from player %s: %v\n", playerId, message)
 	switch message.Event {
 	case "request.join-team":
 		fmt.Printf("Player %s requesting to join team %d\n", playerId, message.Payload["team"])
@@ -108,7 +125,6 @@ func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
 				break
 			}
 		}
-		// TODO: what if playerId not found, maybe we update the data struct to a map to help
 
 		l.Hub.SendTo(playerId, hub.Message{
 			Event: "response.join-team",
@@ -126,18 +142,48 @@ func (l *Lobby) HandleMessage(playerId string, message hub.Message) {
 
 		requestId := message.Payload["requestId"].(string)
 
+		// TODO: handle these error cases:
+		//  - There is only 1 player in the lobby
 		l.Hub.SendTo(playerId, hub.Message{
 			Event: "response.start-game",
 			Payload: map[string]interface{}{
-				"requestId":   requestId,
-				"status":      "success",
-				"description": "Game starting",
+				"requestId": requestId,
+				"status":    "success",
 			},
 		})
 
 		l.Hub.Broadcast(hub.Message{
 			Event:   "notification.game-started",
 			Payload: map[string]interface{}{},
+		})
+		return
+
+	case "request.add-word":
+		word := message.Payload["word"].(string)
+		fmt.Printf("Player %s requesting to add word: %s\n", playerId, word)
+
+		l.SubmittedWords = append(l.SubmittedWords, SubmittedWord{
+			Word:     word,
+			PlayerId: playerId,
+		})
+
+		// TODO: handle these error cases:
+		//  - duplicate word
+		//  - player already submitted 3 words
+		requestId := message.Payload["requestId"].(string)
+		l.Hub.SendTo(playerId, hub.Message{
+			Event: "response.add-word",
+			Payload: map[string]interface{}{
+				"requestId": requestId,
+				"status":    "success",
+			},
+		})
+
+		l.Hub.Broadcast(hub.Message{
+			Event: "state.word-bank",
+			Payload: map[string]interface{}{
+				"submittedWords": l.SubmittedWords,
+			},
 		})
 		return
 
@@ -163,14 +209,4 @@ func (l *Lobby) broadcastPlayerList() {
 		},
 	}
 	l.Hub.Broadcast(playerListMsg)
-}
-
-func (l *Lobby) removeFromPlayers(playerId string) {
-	for i := 0; i < len(l.Players); i++ {
-		if l.Players[i].Id == playerId {
-			l.Players[i] = l.Players[len(l.Players)-1]
-			l.Players = l.Players[:len(l.Players)-1]
-			break
-		}
-	}
 }
