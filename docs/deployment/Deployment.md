@@ -124,11 +124,9 @@ After the first installation, updating either app is much quicker.
 ```
 GOOS=linux GOARCH=amd64 go build -o saladbowl-service ./main.go
 
-IP=saladbowl.bensivo.com
-ssh bensivo@$IP "mkdir -p /home/bensivo/bin"
-ssh -t bensivo@IP "sudo systemctl stop saladbowl-service"
-scp ./saladbowl-service bensivo@$IP:/home/bensivo/bin/
-ssh -t bensivo@IP "sudo systemctl restart saladbowl-service"
+ssh -t bensivo@saladbowl.bensivo.com "sudo systemctl stop saladbowl-service"
+scp ./saladbowl-service bensivo@saladbowl.bensivo.com:/home/bensivo/bin/
+ssh -t bensivo@saladbowl.bensivo.com "sudo systemctl restart saladbowl-service"
 ```
 
 ### Webapp
@@ -136,7 +134,6 @@ ssh -t bensivo@IP "sudo systemctl restart saladbowl-service"
 npm run build
 tar -zcvf saladbowl-web.tar ./out
 
-IP=saladbowl.bensivo.com
-scp ./saladbowl-web.tar bensivo@$IP:/home/bensivo/
-ssh bensivo@$IP "mkdir -p /home/bensivo/web && tar -zxvf /home/bensivo/saladbowl-web.tar --strip-components=2 -C /home/bensivo/web"
+scp ./saladbowl-web.tar bensivo@saladbowl.bensivo.com:/home/bensivo/
+ssh bensivo@saladbowl.bensivo.com "mkdir -p /home/bensivo/web && tar -zxvf /home/bensivo/saladbowl-web.tar --strip-components=2 -C /home/bensivo/web"
 ```

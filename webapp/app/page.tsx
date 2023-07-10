@@ -50,7 +50,7 @@ export default function HomePage() {
             <div id='content-main' className='content-main card'>
                 <section id='title'>
                     <h1>Salad Bowl</h1>
-                    <h3>by bensivo</h3>
+                    <h3>by bensivo & dayboobian</h3>
                 </section>
 
                 <section id='menu'>
