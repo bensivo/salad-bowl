@@ -21,7 +21,7 @@ type Game struct {
 	Players        []*Player
 	CreatedAt      time.Time
 	SubmittedWords []SubmittedWord
-	// TODO add a 'phase' parameter, indicating what screen players should be seeing. To help with disconnects, or late joiner
+	Phase          string // lobby, word-bank, round1, round2, round3
 }
 
 func NewGame(hub hub.Hub) *Game {
@@ -37,6 +37,7 @@ func NewGame(hub hub.Hub) *Game {
 		Players:        []*Player{},
 		CreatedAt:      time.Now(),
 		SubmittedWords: []SubmittedWord{},
+		Phase:          "lobby",
 	}
 }
 
@@ -76,6 +77,13 @@ func (g *Game) HandleNewConnection(playerId string) {
 	}
 
 	g.broadcastPlayerList()
+
+	g.Hub.SendTo(playerId, hub.Message{
+		Event: "state.game-phase",
+		Payload: map[string]interface{}{
+			"phase": g.Phase,
+		},
+	})
 
 	g.Hub.SendTo(playerId, hub.Message{
 		Event: "state.word-bank",
@@ -152,9 +160,12 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 			},
 		})
 
+		g.Phase = "word-bank"
 		g.Hub.Broadcast(hub.Message{
-			Event:   "notification.game-started",
-			Payload: map[string]interface{}{},
+			Event: "state.game-phase",
+			Payload: map[string]interface{}{
+				"phase": g.Phase,
+			},
 		})
 		return
 

@@ -1,4 +1,5 @@
 import { createStore, select, withProps } from "@ngneat/elf";
+import { tap } from 'rxjs/operators';
 import ws from "./ws";
 
 export interface Player {
@@ -27,7 +28,8 @@ export class PlayerStore {
 
 
     myPlayerId$ = this.store.pipe(
-        select(s => s.myPlayerId)
+        select(s => s.myPlayerId),
+        tap(s => console.log(s))
     );
 
     teams$ = this.store.pipe(
@@ -59,6 +61,14 @@ export class PlayerStore {
             }
         });
 
+    }
+
+    reset() {
+        this.store.update(s => ({
+            myPlayerId: '',
+            players: [],
+            teams: [[],[]],
+        }))
     }
 
     setPlayers(players: Player[]) {

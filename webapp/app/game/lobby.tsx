@@ -6,7 +6,9 @@ import playerStore from "../../services/player-store"
 import { useRouter } from 'next/navigation';
 import ws from '../../services/ws';
 
-import './page.css';
+import './lobby.css';
+import gameStore from '@/services/game-store';
+import wordStore from '@/services/wordbank-store';
 
 export default function LobbyPage() {
     const router = useRouter();
@@ -19,11 +21,14 @@ export default function LobbyPage() {
     }, []) // passing an empty array in the second arg makes this effect only run once
 
     function init() {
+        console.log('Initializing lobbby page')
         const gameId = sessionStorage.getItem('gameId')
         setLobbyId(gameId);
 
         ws.init();
+        gameStore.init();
         playerStore.init();
+        wordStore.init();
 
         ws.messages$.subscribe((msg: any) => {
             switch (msg.event) {
@@ -53,8 +58,7 @@ export default function LobbyPage() {
     }
 
     return (
-        <div id='game'>
-
+        <div id='lobby'>
             <div id='title' className='content-main card'>
                 <h1>Lobby</h1>
                 <h3>Join Code: {gameId}</h3>

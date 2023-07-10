@@ -1,13 +1,13 @@
 import { WS_URL } from "@/app/constants";
 import { Subject } from 'rxjs';
 
-var conn: WebSocket;
+var conn: WebSocket | undefined;
 
 var messages = new Subject();
 export var messages$ = messages.asObservable();
 
 export function init() {
-    if (conn !== undefined) {
+    if (conn !== undefined){
         return;
     }
 
@@ -19,6 +19,8 @@ export function init() {
         throw new Error('Could not fetch gameId from session storage. Navigating back to home page')
     }
 
+    console.log('Connecting WS to', gameId)
+
     conn = new WebSocket(`${WS_URL}/game/${gameId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
     conn.onmessage = (e) => {
         const msg = JSON.parse(e.data);
@@ -26,6 +28,18 @@ export function init() {
 
         messages.next(msg);
     }
+    conn.onclose = (e) => {
+        console.log('Close Event', e)
+    }
+}
+
+export function disconnect() {
+    if (conn == undefined) {
+        return;
+    }
+
+    conn.close(1000);
+    conn = undefined;
 }
 
 export function send(msg: string) {
@@ -39,6 +53,7 @@ export function send(msg: string) {
 const ws = {
     messages$,
     init,
+    disconnect,
     send,
 }
 export default ws;

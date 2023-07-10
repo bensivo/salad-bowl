@@ -48,6 +48,9 @@ export class WordBankStore {
         }));
     }
 
+    reset() {
+        this.setWords([]);
+    }
 }
 
 const wordStore = new WordBankStore();

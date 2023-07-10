@@ -1,17 +1,34 @@
 'use client';
 
-import { useState } from 'react';
-import { CharInput } from '../components/char-input';
-import { useRouter } from 'next/navigation';
+import gameStore from '@/services/game-store';
+import playerStore from '@/services/player-store';
+import wordStore from '@/services/wordbank-store';
 import axios from 'axios';
-import './page.css';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { CharInput } from '../components/char-input';
 import { HTTP_URL } from './constants';
+import './page.css';
+import ws from '@/services/ws';
 
 export default function HomePage() {
     const router  = useRouter();
     const [joinCode, setJoinCode] = useState('');
 
+    useEffect(() => {
+        init();
+    }, [])
+
+    function init() {
+        ws.disconnect(); // Handles case where player navigated here using the back button. We've found desktop browsers don't actually end the websocket in that case.
+    }
+
     const onClickNewGame = async () => {
+        // Clear all stores, in case there is leftover state from a previous game
+        gameStore.reset();
+        playerStore.reset();
+        wordStore.reset();
+
         const res = await axios.request({
             method: 'post',
             url: `${HTTP_URL}/game`,
@@ -21,7 +38,7 @@ export default function HomePage() {
 
         const gameId = res.data.gameId;
         sessionStorage.setItem('gameId', gameId);
-        router.push('/lobby')
+        router.push('/game')
     }
 
     const onClickJoinGame = async () => {
@@ -42,7 +59,7 @@ export default function HomePage() {
         }
 
         sessionStorage.setItem('gameId', joinCode);
-        router.push('/lobby')
+        router.push('/game')
     }
 
     return (

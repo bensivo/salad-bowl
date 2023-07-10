@@ -39,12 +39,16 @@ describe('Wordbank', () => {
         // Then everyone gets a notification
         await waitForExpect(() => {
             expect(messageCb1).toHaveBeenCalledWith({
-                event: "notification.game-started",
-                payload: {}
+                event: "state.game-phase",
+                payload: {
+                    phase: 'word-bank'
+                }
             });
             expect(messageCb2).toHaveBeenCalledWith({
-                event: "notification.game-started",
-                payload: {}
+                event: "state.game-phase",
+                payload: {
+                    phase: 'word-bank'
+                }
             });
         }, 5000, 1000);
 
@@ -77,8 +81,10 @@ describe('Wordbank', () => {
 
         await waitForExpect(() => {
             expect(messageCb1).toHaveBeenCalledWith({
-                event: "notification.game-started",
-                payload: {}
+                event: "state.game-phase",
+                payload: {
+                    phase: 'word-bank'
+                }
             });
         }, 5000, 1000);
 
