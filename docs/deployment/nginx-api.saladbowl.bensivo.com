@@ -12,7 +12,7 @@ server {
     }
 
     # Special handling for our websocket connection routes
-    location ~ /lobbies/.*/connect {
+    location ~ /games/.*/connect {
         proxy_pass https://api.saladbowl.bensivo.com;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;

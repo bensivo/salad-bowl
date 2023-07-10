@@ -3,34 +3,34 @@ import axios from 'axios';
 import waitForExpect from 'wait-for-expect';
 import WebSocket from 'ws';
 
-export async function createLobby(): Promise<string> {
+export async function createGame(): Promise<string> {
     const createRes = await axios.request({
         method: 'POST',
-        url: 'http://localhost:8080/lobbies',
+        url: 'http://localhost:8080/game',
         data: {}
     });
 
-    const lobbyId = createRes.data.lobbyId;
+    const gameId = createRes.data.gameId;
 
     const getRes = await axios.request({
         method: 'GET',
-        url: 'http://localhost:8080/lobbies'
+        url: 'http://localhost:8080/game'
     })
 
-    expect(getRes.data[lobbyId]).toBeTruthy();
+    expect(getRes.data[gameId]).toBeTruthy();
 
-    return lobbyId;
+    return gameId;
 }
 
-export async function connect(lobbyId: string, playerId?: string): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
+export async function connect(gameId: string, playerId?: string): Promise<{ conn: WebSocket, messageCb: jest.Mock }> {
     let conn: WebSocket
     const openCb = jest.fn();
     const messageCb = jest.fn();
 
     conn = !!playerId ?
-        new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect?playerId=${playerId}`)
+        new WebSocket(`ws://localhost:8080/game/${gameId}/connect?playerId=${playerId}`)
         :
-        new WebSocket(`ws://localhost:8080/lobbies/${lobbyId}/connect`)
+        new WebSocket(`ws://localhost:8080/game/${gameId}/connect`)
         ;
     conn.onopen = openCb;
     conn.onmessage = (event) => {

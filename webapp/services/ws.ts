@@ -11,15 +11,15 @@ export function init() {
         return;
     }
 
-    const lobbyId = sessionStorage.getItem('lobbyId')
+    const gameId = sessionStorage.getItem('gameId')
     const playerId = sessionStorage.getItem('playerId')
 
-    if (!lobbyId) {
-        console.error('Could not fetch lobbyId from session storage. Navigating back to home page');
-        throw new Error('Could not fetch lobbyId from session storage. Navigating back to home page')
+    if (!gameId) {
+        console.error('Could not fetch gameId from session storage. Navigating back to home page');
+        throw new Error('Could not fetch gameId from session storage. Navigating back to home page')
     }
 
-    conn = new WebSocket(`${WS_URL}/lobbies/${lobbyId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
+    conn = new WebSocket(`${WS_URL}/game/${gameId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
     conn.onmessage = (e) => {
         const msg = JSON.parse(e.data);
         console.log('Received message', msg)

@@ -1,18 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
 import waitForExpect from 'wait-for-expect';
 import { joinTeam } from './03-Teams.spec';
-import { connect, createLobby, disconnect, getPlayerId } from './actions';
+import { connect, createGame, disconnect, getPlayerId } from './actions';
 
 describe('Wordbank', () => {
     it('start game - should notify all players', async () => {
-        // Given a lobby with 2 players
-        const lobbyId = await createLobby();
-        const res1 = await connect(lobbyId);
+        // Given a game with 2 players
+        const gameId = await createGame();
+        const res1 = await connect(gameId);
         const conn1 = res1.conn;
         const messageCb1 = res1.messageCb
         await joinTeam(conn1, messageCb1, 0);
 
-        const res2 = await connect(lobbyId);
+        const res2 = await connect(gameId);
         const conn2 = res2.conn;
         const messageCb2 = res2.messageCb
         await joinTeam(conn2, messageCb2, 1);
@@ -54,15 +54,15 @@ describe('Wordbank', () => {
     });
 
     it('add-word - should update all players', async () => {
-        // Given a lobby with 2 players, which has started
-        const lobbyId = await createLobby();
-        const res1 = await connect(lobbyId);
+        // Given a game with 2 players, which has started
+        const gameId = await createGame();
+        const res1 = await connect(gameId);
         const conn1 = res1.conn;
         const messageCb1 = res1.messageCb
         await joinTeam(conn1, messageCb1, 0);
         const playerId1 = getPlayerId(messageCb1)
 
-        const res2 = await connect(lobbyId);
+        const res2 = await connect(gameId);
         const conn2 = res2.conn;
         const messageCb2 = res2.messageCb
         await joinTeam(conn2, messageCb2, 1);

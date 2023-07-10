@@ -2,13 +2,13 @@ body {
     background-color: #2A453D
 }
 
-#lobby .card {
+#game .card {
     background-color: white;
     border-radius: .5rem;
     padding: 1rem;
 }
 
-#lobby .content-main {
+#game .content-main {
     width: 80%;
     margin: auto;
 
@@ -20,7 +20,7 @@ body {
     color: #2A453D;
 }
 
-#lobby button {
+#game button {
     width: 100%;
     padding: .5rem 1rem;
     border: none;
@@ -33,33 +33,33 @@ body {
     cursor: pointer;
 }
 
-#lobby #button button:hover {
+#game #button button:hover {
     background-color: #ca8e70;
     color: #F4F4EF;
 }
 
 
-#lobby .card-header {
+#game .card-header {
     display: flex;
     flex-direction: row;
 }
-#lobby .card-header h4 {
+#game .card-header h4 {
     flex: 1;
     text-align: left;
     margin: .5rem 1rem;
 }
-#lobby .card-header button{
+#game .card-header button{
     width: fit-content;
 }
 
 
-#lobby ul {
+#game ul {
     list-style-type: none;
 }
-#lobby li {
+#game li {
     text-align: left;
     padding: 1rem;
 }
-#lobby li.player-offline {
+#game li.player-offline {
     text-decoration: line-through;
 }

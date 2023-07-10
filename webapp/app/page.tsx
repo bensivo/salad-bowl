@@ -14,13 +14,13 @@ export default function HomePage() {
     const onClickNewGame = async () => {
         const res = await axios.request({
             method: 'post',
-            url: `${HTTP_URL}/lobbies`,
+            url: `${HTTP_URL}/game`,
         })
 
         // TODO: error notification on failure
 
-        const lobbyId = res.data.lobbyId;
-        sessionStorage.setItem('lobbyId', lobbyId);
+        const gameId = res.data.gameId;
+        sessionStorage.setItem('gameId', gameId);
         router.push('/lobby')
     }
 
@@ -33,7 +33,7 @@ export default function HomePage() {
 
         const res = await axios.request({
             method: 'get',
-            url: `${HTTP_URL}/lobbies`,
+            url: `${HTTP_URL}/game`,
         });
         if (!res.data[joinCode]) {
             console.error(`Lobby ${joinCode} not found`)
@@ -41,7 +41,7 @@ export default function HomePage() {
             return;
         }
 
-        sessionStorage.setItem('lobbyId', joinCode);
+        sessionStorage.setItem('gameId', joinCode);
         router.push('/lobby')
     }
 

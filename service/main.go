@@ -6,15 +6,15 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/bensivo/salad-bowl/game"
 	"github.com/bensivo/salad-bowl/gorilla"
-	"github.com/bensivo/salad-bowl/lobby"
 )
 
 func main() {
-	lobbySvc := lobby.NewLobbyService()
-	lobbySvc.StartCleanup()
+	gameSvc := game.NewGameService()
+	gameSvc.StartCleanup()
 
-	go gorilla.StartGorillaServer(lobbySvc)
+	go gorilla.StartGorillaServer(gameSvc)
 
 	waitForSigint()
 }

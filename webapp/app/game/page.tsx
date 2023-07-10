@@ -9,7 +9,6 @@ import wordStore from '../../services/wordbank-store';
 import ws from '../../services/ws';
 import './page.css';
 
-
 /**
  * Emits an object mapping playerIds to the words they have submitted.
  * 

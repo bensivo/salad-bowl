@@ -12,7 +12,7 @@ export interface PlayerState {
     teams: Player[][];
 }
 
-// TODO: This store is only updated from the lobby page. 
+// TODO: This store is only updated from the game page. 
 // IF the user refreshes on the wordbank page, this store doesn't get any updates. We need to move the state updates from messages into some shared component.
 export class PlayerStore {
     initialized = false;

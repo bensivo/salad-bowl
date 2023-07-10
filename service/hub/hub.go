@@ -10,7 +10,7 @@ import (
 //
 // It exposes methods for sending messages to player devices, and allows users to register callbacks for received messages.
 //
-// In the context of this app, each individual game / lobby gets its own hub instance. This prevents players receiving messages from
+// In the context of this app, each individual game / game gets its own hub instance. This prevents players receiving messages from
 // other games going on at the same time.
 //
 //go:generate mockery --name Hub

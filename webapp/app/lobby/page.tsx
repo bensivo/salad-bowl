@@ -10,7 +10,7 @@ import './page.css';
 
 export default function LobbyPage() {
     const router = useRouter();
-    const [lobbyId, setLobbyId] = useState<string | null>('');
+    const [gameId, setLobbyId] = useState<string | null>('');
     const teams = useObservableState(playerStore.teams$, []);
     const myPlayerId = useObservableState(playerStore.myPlayerId$, '')
 
@@ -19,8 +19,8 @@ export default function LobbyPage() {
     }, []) // passing an empty array in the second arg makes this effect only run once
 
     function init() {
-        const lobbyId = sessionStorage.getItem('lobbyId')
-        setLobbyId(lobbyId);
+        const gameId = sessionStorage.getItem('gameId')
+        setLobbyId(gameId);
 
         ws.init();
         playerStore.init();
@@ -53,11 +53,11 @@ export default function LobbyPage() {
     }
 
     return (
-        <div id='lobby'>
+        <div id='game'>
 
             <div id='title' className='content-main card'>
                 <h1>Lobby</h1>
-                <h3>Join Code: {lobbyId}</h3>
+                <h3>Join Code: {gameId}</h3>
 
                 <label>Player ID: {myPlayerId}</label>
             </div>

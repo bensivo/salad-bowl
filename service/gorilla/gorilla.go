@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/bensivo/salad-bowl/game"
 	"github.com/bensivo/salad-bowl/hub/adapters"
-	"github.com/bensivo/salad-bowl/lobby"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -20,15 +20,15 @@ var upgrader websocket.Upgrader = websocket.Upgrader{
 	},
 }
 
-func StartGorillaServer(svc *lobby.LobbyService) {
+func StartGorillaServer(svc *game.GameService) {
 	r := mux.NewRouter()
-	r.HandleFunc("/lobbies/{lobbyId}/connect", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/game/{gameId}/connect", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		l, err := svc.GetLobby(vars["lobbyId"])
+		l, err := svc.GetOne(vars["gameId"])
 		if err != nil {
 			writeJson(w, 500, map[string]interface{}{
 				"status": "error",
-				"error":  fmt.Sprintf("Failed to get lobby: %v", err),
+				"error":  fmt.Sprintf("Failed to get game: %v", err),
 			})
 			return
 		}
@@ -51,30 +51,30 @@ func StartGorillaServer(svc *lobby.LobbyService) {
 		}
 	})
 
-	r.HandleFunc("/lobbies", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Request to create new lobby")
+	r.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Request to create new game")
 
-		lobbyId, err := svc.CreateNewLobby()
+		gameId, err := svc.Create()
 		if err != nil {
-			fmt.Println("Error creating new lobby", err)
+			fmt.Println("Error creating new game", err)
 			w.WriteHeader(500)
 			w.Write([]byte(fmt.Sprintf("%v", err)))
 		}
 
 		writeJson(w, 201, map[string]interface{}{
-			"status":  "Success",
-			"lobbyId": lobbyId,
+			"status": "Success",
+			"gameId": gameId,
 		})
 	}).
 		Methods("POST")
 
-	r.HandleFunc("/lobbies", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
 
 		res := make(map[string]interface{})
-		lobbies := svc.GetLobbies()
+		games := svc.Get()
 
-		for id, lobby := range lobbies {
-			res[id] = lobby
+		for id, game := range games {
+			res[id] = game
 		}
 
 		writeJson(w, 201, res)

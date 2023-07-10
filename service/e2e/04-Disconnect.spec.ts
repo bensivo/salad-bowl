@@ -1,18 +1,18 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import waitForExpect from 'wait-for-expect';
-import { connect, createLobby, disconnect, getPlayerId } from './actions';
+import { connect, createGame, disconnect, getPlayerId } from './actions';
 
 describe('Disconnect', () => {
-    let lobbyId: string;
+    let gameId: string;
     beforeAll(async () => {
-        lobbyId = await createLobby();
+        gameId = await createGame();
     });
 
     it('should update the player list, with the given player offline', async () => {
-        const res1 = await connect(lobbyId)
+        const res1 = await connect(gameId)
         const [conn1, messageCb1] = [res1.conn, res1.messageCb];
 
-        const res2 = await connect(lobbyId)
+        const res2 = await connect(gameId)
         const [conn2, messageCb2] = [res2.conn, res2.messageCb];
         const playerId2 = getPlayerId(messageCb2)
 
