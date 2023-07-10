@@ -1,5 +1,8 @@
 # Salad Bowl
 
+WIP - Full functionality has not yet been completed. This project is a work in progress.
+
+Live at: https://saladbowl.bensivo.com
 
 ## Development
 Development dependencies:
