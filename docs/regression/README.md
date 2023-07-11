@@ -16,16 +16,20 @@ Regression test steps
         - Both windows should update
     - Refresh page, 
       - State should be persisted
-    - Go back, refresh
+    - Go back, 
       - Player should be shown disconnected
-    - Rejoin game, 
+    - Go forward, 
       - Player should be shown connected
     - Start game, all windows update
 
 - Word bank
-    - Submit word, updates UI, updates others
-    - Submit 3 words, stops submissions
-    - Refresh, state persists
+    - Submit word
+      - Updates UI
+      - Updates others
+    - Submit 3 words
+      - Stops submissions
+    - Refresh
+      - State persists
 
 - Etc.
   - Disconnect all players, wait 30 seconds, check localhost:8080/game deletes game

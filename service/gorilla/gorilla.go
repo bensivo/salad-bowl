@@ -24,7 +24,7 @@ func StartGorillaServer(svc *game.GameService) {
 	r := mux.NewRouter()
 	r.HandleFunc("/game/{gameId}/connect", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		l, err := svc.GetOne(vars["gameId"])
+		game, err := svc.GetOne(vars["gameId"])
 		if err != nil {
 			writeJson(w, 500, map[string]interface{}{
 				"status": "error",
@@ -45,9 +45,9 @@ func StartGorillaServer(svc *game.GameService) {
 		playerId := r.URL.Query().Get("playerId")
 
 		if playerId != "" {
-			l.Hub.HandleReconnection(playerChannel, playerId)
+			game.Hub.HandleReconnection(playerChannel, playerId)
 		} else {
-			l.Hub.HandleNewConnection(playerChannel)
+			game.Hub.HandleNewConnection(playerChannel)
 		}
 	})
 
@@ -74,7 +74,12 @@ func StartGorillaServer(svc *game.GameService) {
 		games := svc.Get()
 
 		for id, game := range games {
-			res[id] = game
+			res[id] = map[string]interface{}{
+				"id":             game.ID,
+				"phase":          game.Phase.Get(),
+				"submittedWords": game.SubmittedWords.Get(),
+				"players":        game.Players.Get(),
+			}
 		}
 
 		writeJson(w, 201, res)

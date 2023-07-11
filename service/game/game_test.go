@@ -8,10 +8,9 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestLobby_NewConnection_SendsPlayerId(t *testing.T) {
+func TestGame_NewConnection_SendsPlayerId(t *testing.T) {
 	mockHub := hub.NewMockHub(t)
 	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
-	mockHub.On("Broadcast", mock.Anything).Return(nil)
 
 	// Given a new game
 	g := game.NewGame(mockHub)
@@ -29,13 +28,17 @@ func TestLobby_NewConnection_SendsPlayerId(t *testing.T) {
 	mockHub.AssertCalled(t, "SendTo", "player-id", expected)
 }
 
-func TestLobby_NewConnection_BroadcastsPlayerList(t *testing.T) {
+func TestGame_NewConnection_BroadcastsPlayerList(t *testing.T) {
 	mockHub := hub.NewMockHub(t)
+	mockHub.On("OnNewConnection", mock.Anything).Return()
+	mockHub.On("OnMessage", mock.Anything).Return()
+	mockHub.On("OnPlayerDisconnect", mock.Anything).Return()
 	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
 	mockHub.On("Broadcast", mock.Anything).Return(nil)
 
 	// Given a new g
 	g := game.NewGame(mockHub)
+	g.Start()
 
 	// When 2 players are added
 	g.HandleNewConnection("000-000")
@@ -62,13 +65,57 @@ func TestLobby_NewConnection_BroadcastsPlayerList(t *testing.T) {
 	mockHub.AssertCalled(t, "Broadcast", expected)
 }
 
-func TestLobby_Disconnect_BroadcastsPlayerOffline(t *testing.T) {
+func TestGame_NewConnection_SendsGamePhase(t *testing.T) {
 	mockHub := hub.NewMockHub(t)
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+
+	// Given a new g
+	g := game.NewGame(mockHub)
+
+	// When a player connects
+	g.HandleNewConnection("000-000")
+
+	// Then the phase is sent
+	expected := hub.Message{
+		Event: "state.game-phase",
+		Payload: map[string]interface{}{
+			"phase": "lobby",
+		},
+	}
+	mockHub.AssertCalled(t, "SendTo", "000-000", expected)
+}
+
+func TestGame_NewConnection_SendsWordBank(t *testing.T) {
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+
+	// Given a new game
+	g := game.NewGame(mockHub)
+
+	// When a player connects
+	g.HandleNewConnection("000-000")
+
+	// Then the wordbank is sent
+	expected := hub.Message{
+		Event: "state.word-bank",
+		Payload: map[string]interface{}{
+			"submittedWords": []game.SubmittedWord{},
+		},
+	}
+	mockHub.AssertCalled(t, "SendTo", "000-000", expected)
+}
+
+func TestGame_Disconnect_BroadcastsPlayerOffline(t *testing.T) {
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("OnNewConnection", mock.Anything).Return()
+	mockHub.On("OnMessage", mock.Anything).Return()
+	mockHub.On("OnPlayerDisconnect", mock.Anything).Return()
 	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
 	mockHub.On("Broadcast", mock.Anything).Return(nil)
 
 	// Given a new g, with 2 players
 	g := game.NewGame(mockHub)
+	g.Start()
 	g.HandleNewConnection("000-000")
 	g.HandleNewConnection("111-111")
 
@@ -96,7 +143,7 @@ func TestLobby_Disconnect_BroadcastsPlayerOffline(t *testing.T) {
 	mockHub.AssertCalled(t, "Broadcast", expected)
 }
 
-func TestLobby_TeamRequest_Success(t *testing.T) {
+func TestGame_JoinTeamRequest_Success(t *testing.T) {
 
 	h := hub.NewMockHub(t)
 	h.On("OnNewConnection", mock.Anything).Return()
@@ -130,8 +177,7 @@ func TestLobby_TeamRequest_Success(t *testing.T) {
 	})
 }
 
-func TestLobby_TeamRequest_StateUpdate(t *testing.T) {
-
+func TestGame_JoinTeamRequest_StateUpdate(t *testing.T) {
 	mockHub := hub.NewMockHub(t)
 	mockHub.On("OnNewConnection", mock.Anything).Return()
 	mockHub.On("OnMessage", mock.Anything).Return()
@@ -177,6 +223,71 @@ func TestLobby_TeamRequest_StateUpdate(t *testing.T) {
 					"team":   1,
 				},
 			},
+		},
+	}
+
+	mockHub.AssertCalled(t, "Broadcast", expected)
+}
+
+func TestGame_StartGameRequest_SendsResponse(t *testing.T) {
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("OnNewConnection", mock.Anything).Return()
+	mockHub.On("OnMessage", mock.Anything).Return()
+	mockHub.On("OnPlayerDisconnect", mock.Anything).Return()
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+	mockHub.On("Broadcast", mock.Anything).Return(nil)
+
+	// Given a game with at least 1 player
+	g := game.NewGame(mockHub)
+	g.Start()
+	g.HandleNewConnection("000-000")
+
+	// When the player sends request.start-game
+	g.HandleMessage("000-000", hub.Message{
+		Event: "request.start-game",
+		Payload: map[string]interface{}{
+			"requestId": "00000000-0000-0000-0000-000000000000",
+		},
+	})
+
+	// Then they get a response
+	expected := hub.Message{
+		Event: "response.start-game",
+		Payload: map[string]interface{}{
+			"requestId": "00000000-0000-0000-0000-000000000000",
+			"status":    "success",
+		},
+	}
+
+	mockHub.AssertCalled(t, "SendTo", "000-000", expected)
+}
+
+func TestGame_StartGameRequest_SendsGamePhaseUpdate(t *testing.T) {
+	mockHub := hub.NewMockHub(t)
+	mockHub.On("OnNewConnection", mock.Anything).Return()
+	mockHub.On("OnMessage", mock.Anything).Return()
+	mockHub.On("OnPlayerDisconnect", mock.Anything).Return()
+	mockHub.On("SendTo", mock.Anything, mock.Anything).Return(nil)
+	mockHub.On("Broadcast", mock.Anything).Return(nil)
+
+	// Given a game with at least 1 player
+	g := game.NewGame(mockHub)
+	g.Start()
+	g.HandleNewConnection("000-000")
+
+	// When the player sends request.start-game
+	g.HandleMessage("000-000", hub.Message{
+		Event: "request.start-game",
+		Payload: map[string]interface{}{
+			"requestId": "00000000-0000-0000-0000-000000000000",
+		},
+	})
+
+	// Then everyone gets a state.game-phase event
+	expected := hub.Message{
+		Event: "state.game-phase",
+		Payload: map[string]interface{}{
+			"phase": "word-bank",
 		},
 	}
 

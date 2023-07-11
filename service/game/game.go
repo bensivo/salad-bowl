@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bensivo/salad-bowl/hub"
+	"github.com/bensivo/salad-bowl/observable"
 	"github.com/bensivo/salad-bowl/util"
 )
 
@@ -16,12 +17,13 @@ type SubmittedWord struct {
 
 // Game contains all the state related to a single instance of salad bowl being played
 type Game struct {
-	ID             string
-	Hub            hub.Hub
-	Players        []*Player
-	CreatedAt      time.Time
-	SubmittedWords []SubmittedWord
-	Phase          string // lobby, word-bank, round1, round2, round3
+	ID        string
+	Hub       hub.Hub
+	CreatedAt time.Time
+
+	Players        observable.Observable[[]Player]
+	SubmittedWords observable.Observable[[]SubmittedWord]
+	Phase          observable.Observable[string]
 }
 
 func NewGame(hub hub.Hub) *Game {
@@ -31,13 +33,18 @@ func NewGame(hub hub.Hub) *Game {
 	teams[0] = []string{}
 	teams[1] = []string{}
 
+	players := observable.New([]Player{})
+	submittedWords := observable.New([]SubmittedWord{})
+	phase := observable.New("lobby")
+
 	return &Game{
-		ID:             gameId,
-		Hub:            hub,
-		Players:        []*Player{},
-		CreatedAt:      time.Now(),
-		SubmittedWords: []SubmittedWord{},
-		Phase:          "lobby",
+		ID:        gameId,
+		Hub:       hub,
+		CreatedAt: time.Now(),
+
+		Players:        players,
+		SubmittedWords: submittedWords,
+		Phase:          phase,
 	}
 }
 
@@ -46,63 +53,103 @@ func (g *Game) Start() {
 	g.Hub.OnNewConnection(g.HandleNewConnection)
 	g.Hub.OnMessage(g.HandleMessage)
 	g.Hub.OnPlayerDisconnect(g.HandlePlayerDisconnect)
+
+	g.Players.OnChange(func(players []Player) {
+		playersAsMap := []map[string]interface{}{}
+		for _, player := range players {
+			playersAsMap = append(playersAsMap, map[string]interface{}{
+				"id":     player.Id,
+				"status": player.Status,
+				"team":   player.Team,
+			})
+		}
+		g.Hub.Broadcast(hub.Message{
+			Event: "state.player-list",
+			Payload: map[string]interface{}{
+				"players": playersAsMap,
+			},
+		})
+	})
+
+	g.Phase.OnChange(func(value string) {
+		g.Hub.Broadcast(hub.Message{
+			Event: "state.game-phase",
+			Payload: map[string]interface{}{
+				"phase": value,
+			},
+		})
+	})
+
+	g.SubmittedWords.OnChange(func(value []SubmittedWord) {
+		g.Hub.Broadcast(hub.Message{
+			Event: "state.word-bank",
+			Payload: map[string]interface{}{
+				"submittedWords": value,
+			},
+		})
+	})
 }
 
 // HandleNewConnection adds a player to the game by id.
-// It sends that player their welcome message, and then broadcasts the updated player list.
+// It sends that player their welcome message, and then sends them all the observable state values they need
 func (g *Game) HandleNewConnection(playerId string) {
 	fmt.Printf("New connection with id %s\n", playerId)
 
-	// Send the player's id to them so they know what it is
-	welcomeMsg := hub.Message{
+	g.Hub.SendTo(playerId, hub.Message{
 		Event: "notification.player-id",
 		Payload: map[string]interface{}{
 			"playerId": playerId,
 		},
-	}
-	g.Hub.SendTo(playerId, welcomeMsg)
+	})
 
+	players := g.Players.Get()
 	isExistingPlayer := false
-	for i := 0; i < len(g.Players); i++ {
-		if g.Players[i].Id == playerId {
-			g.Players[i].Status = "online"
+
+	for i := 0; i < len(players); i++ {
+		if players[i].Id == playerId {
+			players[i].Status = "online"
 			isExistingPlayer = true
 			break
 		}
 	}
 
 	if !isExistingPlayer {
-		player := NewPlayer(playerId)
-		g.Players = append(g.Players, player)
+		player := Player{
+			Id:     playerId,
+			Status: "online",
+			Team:   0,
+		}
+		players = append(players, player)
 	}
 
-	g.broadcastPlayerList()
+	g.Players.Set(players)
 
 	g.Hub.SendTo(playerId, hub.Message{
 		Event: "state.game-phase",
 		Payload: map[string]interface{}{
-			"phase": g.Phase,
+			"phase": g.Phase.Get(),
 		},
 	})
 
 	g.Hub.SendTo(playerId, hub.Message{
 		Event: "state.word-bank",
 		Payload: map[string]interface{}{
-			"submittedWords": g.SubmittedWords,
+			"submittedWords": g.SubmittedWords.Get(),
 		},
 	})
 }
 
 func (g *Game) HandlePlayerDisconnect(playerId string) {
 	fmt.Printf("Player %s disconnected\n", playerId)
-	for i := 0; i < len(g.Players); i++ {
-		player := g.Players[i]
+	players := g.Players.Get()
+	for i := 0; i < len(players); i++ {
+		player := players[i]
 		if player.Id == playerId {
-			g.Players[i].Status = "offline"
+			players[i].Status = "offline"
 		}
 	}
 
-	g.broadcastPlayerList()
+	g.Players.Set(players)
 }
 
 func (g *Game) HandleMessage(playerId string, message hub.Message) {
@@ -127,12 +174,14 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 			return
 		}
 
-		for i, player := range g.Players {
+		players := g.Players.Get()
+		for i, player := range players {
 			if player.Id == playerId {
-				g.Players[i].Team = team
+				players[i].Team = team
 				break
 			}
 		}
+		g.Players.Set(players)
 
 		g.Hub.SendTo(playerId, hub.Message{
 			Event: "response.join-team",
@@ -142,8 +191,6 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 				"team":      team,
 			},
 		})
-
-		g.broadcastPlayerList()
 
 	case "request.start-game":
 		fmt.Printf("Player %s requesting to start the game\n", playerId)
@@ -160,23 +207,25 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 			},
 		})
 
-		g.Phase = "word-bank"
-		g.Hub.Broadcast(hub.Message{
-			Event: "state.game-phase",
-			Payload: map[string]interface{}{
-				"phase": g.Phase,
-			},
-		})
+		g.Phase.Set("word-bank")
+		// g.Hub.Broadcast(hub.Message{
+		// 	Event: "state.game-phase",
+		// 	Payload: map[string]interface{}{
+		// 		"phase": g.Phase,
+		// 	},
+		// })
 		return
 
 	case "request.add-word":
 		word := message.Payload["word"].(string)
 		fmt.Printf("Player %s requesting to add word: %s\n", playerId, word)
 
-		g.SubmittedWords = append(g.SubmittedWords, SubmittedWord{
+		words := g.SubmittedWords.Get()
+		words = append(words, SubmittedWord{
 			Word:     word,
 			PlayerId: playerId,
 		})
+		g.SubmittedWords.Set(words)
 
 		// TODO: handle these error cases:
 		//  - duplicate word
@@ -190,34 +239,9 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 			},
 		})
 
-		g.Hub.Broadcast(hub.Message{
-			Event: "state.word-bank",
-			Payload: map[string]interface{}{
-				"submittedWords": g.SubmittedWords,
-			},
-		})
 		return
 
 	default:
 		fmt.Printf("Unknown event %s\n", message.Event)
 	}
-}
-
-func (g *Game) broadcastPlayerList() {
-	players := []map[string]interface{}{}
-	for _, player := range g.Players {
-		players = append(players, map[string]interface{}{
-			"id":     player.Id,
-			"status": player.Status,
-			"team":   player.Team,
-		})
-	}
-
-	playerListMsg := hub.Message{
-		Event: "state.player-list",
-		Payload: map[string]interface{}{
-			"players": players,
-		},
-	}
-	g.Hub.Broadcast(playerListMsg)
 }

@@ -8,8 +8,8 @@ type Player struct {
 	Team   int    `json:"team"`
 }
 
-func NewPlayer(id string) *Player {
-	return &Player{
+func NewPlayer(id string) Player {
+	return Player{
 		Id:     id,
 		Status: "online",
 		Team:   0,

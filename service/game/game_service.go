@@ -61,7 +61,7 @@ func (svc *GameService) Cleanup() {
 games:
 	for id, game := range svc.games {
 		// Don't remove games with at least 1 online player
-		for _, player := range game.Players {
+		for _, player := range game.Players.Get() {
 			if player.Status == "online" {
 				continue games
 			}
