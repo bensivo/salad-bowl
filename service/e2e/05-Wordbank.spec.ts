@@ -64,13 +64,13 @@ describe('Wordbank', () => {
         const conn1 = res1.conn;
         const messageCb1 = res1.messageCb
         await joinTeam(conn1, messageCb1, 0);
-        const playerId1 = getPlayerId(messageCb1)
+        const playerId1 = await getPlayerId(messageCb1)
 
         const res2 = await connect(gameId);
         const conn2 = res2.conn;
         const messageCb2 = res2.messageCb
         await joinTeam(conn2, messageCb2, 1);
-        const playerId2 = getPlayerId(messageCb2)
+        const playerId2 = await getPlayerId(messageCb2)
 
         conn1.send(JSON.stringify({
             event: 'request.start-game',
@@ -135,6 +135,73 @@ describe('Wordbank', () => {
                 }
             });
         }, 5000, 1000);
+
+        await disconnect(conn1);
+        await disconnect(conn2);
+    });
+
+    it('add-word - should not allow duplicate words', async () => {
+        // Given a game with 2 players, which has started
+        const gameId = await createGame();
+        const res1 = await connect(gameId);
+        const conn1 = res1.conn;
+        const messageCb1 = res1.messageCb
+        await joinTeam(conn1, messageCb1, 0);
+        const playerId1 = await getPlayerId(messageCb1)
+
+        const res2 = await connect(gameId);
+        const conn2 = res2.conn;
+        const messageCb2 = res2.messageCb
+        await joinTeam(conn2, messageCb2, 1);
+        const playerId2 = await getPlayerId(messageCb2)
+
+        conn1.send(JSON.stringify({
+            event: 'request.start-game',
+            payload: {
+                "requestId": '00000000-0000-0000-0000-000000000000',
+            },
+        }))
+
+        await waitForExpect(() => {
+            expect(messageCb1).toHaveBeenCalledWith({
+                event: "state.game-phase",
+                payload: {
+                    phase: 'word-bank'
+                }
+            });
+        }, 5000, 1000);
+
+        // GIVEN a word has been added
+        conn1.send(JSON.stringify({
+            event: 'request.add-word',
+            payload: {
+                requestId: "00000000-0000-0000-0000-000000000000",
+                word: 'asdf',
+            },
+        }))
+
+        // When a player sends the same word again
+        conn1.send(JSON.stringify({
+            event: 'request.add-word',
+            payload: {
+                requestId: "00000000-0000-0000-0000-000000000000",
+                word: 'asdf',
+            },
+        }))
+
+
+        // Then they get an error response
+        await waitForExpect(() => {
+            expect(messageCb1).toHaveBeenCalledWith({
+                event: "response.add-word",
+                payload: {
+                    requestId: "00000000-0000-0000-0000-000000000000",
+                    status: "error",
+                    description: '"asdf" is already in the word bank',
+                }
+            });
+        }, 5000, 1000);
+
 
         await disconnect(conn1);
         await disconnect(conn2);

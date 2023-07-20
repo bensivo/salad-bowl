@@ -21,6 +21,7 @@ type Game struct {
 	Hub       hub.Hub
 	CreatedAt time.Time
 
+	// Observable state objects. Any updates to these objects get broadcast to all players in the game
 	Players        observable.Observable[[]Player]
 	SubmittedWords observable.Observable[[]SubmittedWord]
 	Phase          observable.Observable[string]
@@ -208,19 +209,32 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 		})
 
 		g.Phase.Set("word-bank")
-		// g.Hub.Broadcast(hub.Message{
-		// 	Event: "state.game-phase",
-		// 	Payload: map[string]interface{}{
-		// 		"phase": g.Phase,
-		// 	},
-		// })
 		return
 
 	case "request.add-word":
+		requestId := message.Payload["requestId"].(string)
+
 		word := message.Payload["word"].(string)
 		fmt.Printf("Player %s requesting to add word: %s\n", playerId, word)
 
 		words := g.SubmittedWords.Get()
+
+		for _, submittedWord := range words {
+			if word == submittedWord.Word {
+				fmt.Printf("Cannot add word %s. Duplicate.\n", word)
+
+				g.Hub.SendTo(playerId, hub.Message{
+					Event: "response.add-word",
+					Payload: map[string]interface{}{
+						"requestId":   requestId,
+						"status":      "error",
+						"description": fmt.Sprintf("\"%s\" is already in the word bank", word),
+					},
+				})
+				return
+			}
+		}
+
 		words = append(words, SubmittedWord{
 			Word:     word,
 			PlayerId: playerId,
@@ -230,7 +244,6 @@ func (g *Game) HandleMessage(playerId string, message hub.Message) {
 		// TODO: handle these error cases:
 		//  - duplicate word
 		//  - player already submitted 3 words
-		requestId := message.Payload["requestId"].(string)
 		g.Hub.SendTo(playerId, hub.Message{
 			Event: "response.add-word",
 			Payload: map[string]interface{}{

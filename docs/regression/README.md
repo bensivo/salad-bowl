@@ -26,6 +26,8 @@ Regression test steps
     - Submit word
       - Updates UI
       - Updates others
+    - Submit the same word
+      - Shows error toast
     - Submit 3 words
       - Stops submissions
     - Refresh

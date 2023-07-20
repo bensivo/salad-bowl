@@ -14,7 +14,7 @@ describe('Disconnect', () => {
 
         const res2 = await connect(gameId)
         const [conn2, messageCb2] = [res2.conn, res2.messageCb];
-        const playerId2 = getPlayerId(messageCb2)
+        const playerId2 = await getPlayerId(messageCb2)
 
 
         // Given player 2 has joined

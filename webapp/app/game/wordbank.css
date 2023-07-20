@@ -28,7 +28,7 @@ body {
     padding: 0 .5rem;
 }
 
-#game button {
+#game button.btn-primary {
     width: 100%;
     padding: .5rem 1rem;
     border: none;
@@ -41,7 +41,7 @@ body {
     cursor: pointer;
 }
 
-#game #button button:hover {
+#game #button button.button-primary:hover {
     background-color: #ca8e70;
     color: #F4F4EF;
 }
@@ -52,4 +52,13 @@ body {
 }
 #game .submitted-word:not(:last-child)::after{
     content: ', ';
+}
+
+#game .toast .Toastify__toast {
+    background-color: #AD4545;
+    color: white;
+}
+
+#game .toast .Toastify__toast button{
+    display: none;
 }

@@ -9,7 +9,6 @@ describe('Connect', () => {
         gameId = await createGame();
     });
 
-
     it('should receive a playerId', async () => {
         const { conn, messageCb } = await connect(gameId);
 
@@ -37,7 +36,7 @@ describe('Connect', () => {
             }));
         });
 
-        const playerId = getPlayerId(messageCb);
+        const playerId = await getPlayerId(messageCb);
 
         await disconnect(conn);
 
@@ -48,7 +47,7 @@ describe('Connect', () => {
 
 
         // Then I get the same playerId back
-        const playerId2 = getPlayerId(messageCb2);
+        const playerId2 = await getPlayerId(messageCb2);
         expect(playerId2).toEqual(playerId);
 
         await disconnect(conn2);
@@ -58,7 +57,7 @@ describe('Connect', () => {
         const gameId = await createGame();
         const { conn, messageCb } = await connect(gameId);
 
-        const playerId = getPlayerId(messageCb);
+        const playerId = await getPlayerId(messageCb);
 
         await waitForExpect(() => {
             expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({

@@ -4,11 +4,16 @@ import waitForExpect from 'wait-for-expect';
 import WebSocket from 'ws';
 
 export async function createGame(): Promise<string> {
-    const createRes = await axios.request({
-        method: 'POST',
-        url: 'http://localhost:8080/game',
-        data: {}
-    });
+    let createRes;
+    try {
+        createRes = await axios.request({
+            method: 'POST',
+            url: 'http://localhost:8080/game',
+            data: {}
+        });
+    } catch (e) {
+        throw new Error('Create game failed' + e);
+    }
 
     const gameId = createRes.data.gameId;
 
@@ -62,12 +67,18 @@ export async function disconnect(conn: WebSocket): Promise<void> {
     })
 }
 
-export function getPlayerId(messageCb: jest.Mock): string {
+export async function getPlayerId(messageCb: jest.Mock): Promise<string> {
+    await waitForExpect(() => {
+        expect(messageCb).toHaveBeenCalledWith(expect.objectContaining({
+            event: 'notification.player-id',
+        }))
+    })
     for (const call of messageCb.mock.calls) {
         const body: any = call[0]
         if (body.event === 'notification.player-id') {
             return body.payload.playerId
         }
     }
-    return '';
+
+    throw new Error('Could not find playerId');
 }

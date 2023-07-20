@@ -7,8 +7,11 @@ import { combineLatestWith, map, tap } from 'rxjs/operators';
 import * as uuid from 'uuid';
 import wordStore from '../../services/wordbank-store';
 import ws from '../../services/ws';
-import './wordbank.css';
 import gameStore from '@/services/game-store';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './wordbank.css';
 
 /**
  * Emits an object mapping playerIds to the words they have submitted.
@@ -62,6 +65,7 @@ export default function WordbankPage() {
     const myPlayerWords = useObservableState(myPlayerWords$);
 
     const [wordInput, setWordInput] = useState('');
+    const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
         init()
@@ -73,6 +77,29 @@ export default function WordbankPage() {
         gameStore.init();
         playerStore.init();
         wordStore.init();
+
+        if (initialized) {
+            return;
+        } 
+
+        setInitialized(true);
+        ws.messages$.subscribe((msg: any) => {
+            switch (msg.event) {
+                case 'response.add-word':
+                    if (msg.payload.status !== 'success') {
+                        toast(`Error: ${msg.payload.description}`, {
+                            position: 'bottom-center',
+                            autoClose: 60000,
+                            hideProgressBar: true,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: false,
+                            theme: 'light',
+                        })
+                    }
+                    break;
+            }
+        });
     }
 
     function submitWord() {
@@ -118,7 +145,7 @@ export default function WordbankPage() {
                         <div className='content-main card'>
                             <label>Word: </label>
                             <input type="text" value={wordInput} onChange={e => setWordInput(e.target.value)}></input>
-                            <button onClick={submitWord}>Submit</button>
+                            <button className="btn-primary" onClick={submitWord}>Submit</button>
                         </div>
                     )
                     :
@@ -128,6 +155,8 @@ export default function WordbankPage() {
                         </div>
                     )
             }
+
+            <ToastContainer className="toast" />
         </div>
     )
 }

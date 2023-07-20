@@ -23,7 +23,7 @@ describe('Teams', () => {
         it('should send updated player list', async () => {
             const { conn, messageCb } = await connect(gameId);
 
-            const playerId = getPlayerId(messageCb);
+            const playerId = await getPlayerId(messageCb);
 
             await joinTeam(conn, messageCb, 1);
 
@@ -50,7 +50,7 @@ describe('Teams', () => {
         it('should remove me from the old team and put me in the new one', async () => {
             const { conn, messageCb } = await connect(gameId);
 
-            const playerId = getPlayerId(messageCb);
+            const playerId = await getPlayerId(messageCb);
 
             await joinTeam(conn, messageCb, 1);
 
