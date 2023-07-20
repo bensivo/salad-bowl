@@ -68,22 +68,14 @@ export default function WordbankPage() {
     const [initialized, setInitialized] = useState(false);
 
     useEffect(() => {
-        init()
-    }, []);
-
-    function init() {
         console.log('Initializing wordbank page')
         ws.init();
         gameStore.init();
         playerStore.init();
         wordStore.init();
 
-        if (initialized) {
-            return;
-        } 
 
-        setInitialized(true);
-        ws.messages$.subscribe((msg: any) => {
+        const subscription = ws.messages$.subscribe((msg: any) => {
             switch (msg.event) {
                 case 'response.add-word':
                     if (msg.payload.status !== 'success') {
@@ -100,7 +92,11 @@ export default function WordbankPage() {
                     break;
             }
         });
-    }
+
+        return () => {
+            subscription.unsubscribe();
+        }
+    }, []);
 
     function submitWord() {
         if (wordInput.length == 0) {
@@ -132,7 +128,7 @@ export default function WordbankPage() {
                         <div key={playerId} className="player-words">
                             <label>{playerId}: </label>
                             {words.map((w, index) => (
-                                <span className="submitted-word" key={index}>{w}</span>
+                                <span className="submitted-word" key={index}>✅</span>
                             ))}
                         </div>
                     )
