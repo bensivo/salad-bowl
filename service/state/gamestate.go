@@ -1,15 +1,16 @@
 package state
 
+import "slices"
+
 type Player struct {
-	ID   string
-	Name string
-	Team string
+	PlayerID   string
+	PlayerName string
+	TeamName   string
 }
 
 type Team struct {
-	Name      string
-	Score     int64
-	PlayerIds []string
+	TeamName string
+	Score    int64
 }
 
 type SubmittedWord struct {
@@ -28,80 +29,104 @@ type GameState struct {
 	RemainingPlayers []string        // During a round, all the players who have not played the charades role
 }
 
-var _ GameState = GameState{
-	ID:    "asdf",
-	Phase: "word-bank",
-	Players: []Player{
-		{
-			ID:   "alice",
-			Name: "alice",
-		},
-		{
-			ID:   "bob",
-			Name: "bob",
-		},
-		{
-			ID:   "charlie",
-			Name: "charlie",
-		},
-		{
-			ID:   "david",
-			Name: "david",
-		},
-	},
-	Teams: []Team{
-		{
-			Name: "attackers",
-			PlayerIds: []string{
-				"alice",
-				"bob",
-			},
-		},
-		{
-			Name: "defenders",
-			PlayerIds: []string{
-				"charlie",
-				"david",
-			},
-		},
-	},
-	SubmittedWords: []SubmittedWord{
-		{
-			Word:     "apple",
-			PlayerId: "alice",
-		},
-		{
-			Word:     "banana",
-			PlayerId: "bob",
-		},
-		{
-			Word:     "carrot",
-			PlayerId: "charlie",
-		},
-	},
-	RemainingWords: []string{
-		"apple",
-		"banana",
-		"carrot",
-	},
+func NewGameState(id string) GameState {
+	return GameState{
+		ID:               id,
+		Players:          []Player{},
+		Teams:            []Team{},
+		Phase:            "",
+		SubmittedWords:   []SubmittedWord{},
+		RemainingWords:   []string{},
+		RemainingPlayers: []string{},
+	}
 }
 
-/*
-TODO: define all the events that can happen in a game
+func (g GameState) Apply(e Event) GameState {
+	switch e.Name() {
+	case PlayerJoined:
+		var event PlayerJoinedEvent = e.(PlayerJoinedEvent)
 
-- player-joined
-- player-left
-- team-joined
-- word-bank-started
-- word-added
-- round-1-started
-- round-2-started
-- round-3-started
-- guessing-started
-- word-guessed
-- word-skipped
-- guessing-finished
-- game-finished
+		playerIndex := slices.IndexFunc(g.Players, func(p Player) bool {
+			return p.PlayerID == event.PlayerID
+		})
+		if playerIndex == -1 {
+			g.Players = append(g.Players, Player{
+				PlayerID:   event.PlayerID,
+				PlayerName: event.PlayerName,
+				TeamName:   "",
+			})
+		} else {
+			g.Players[playerIndex] = Player{
+				PlayerID:   event.PlayerID,
+				PlayerName: event.PlayerName,
+				TeamName:   g.Players[playerIndex].TeamName,
+			}
+		}
 
-TODO: define fields for each piece, and how the game state changes in response
-*/
+		return g
+
+	case PlayerLeft:
+		var event PlayerLeftEvent = e.(PlayerLeftEvent)
+
+		g.Players = slices.DeleteFunc(g.Players, func(p Player) bool {
+			return p.PlayerID == event.PlayerID
+		})
+		return g
+
+	case TeamJoined:
+		var event TeamJoinedEvent = e.(TeamJoinedEvent)
+
+		for i, player := range g.Players {
+			if player.PlayerID == event.PlayerID {
+				g.Players[i].TeamName = event.TeamName
+			}
+		}
+		return g
+
+	case WordBankStarted:
+		g.Phase = "word-bank"
+		return g
+
+	case WordAdded:
+		var event WordAddedEvent = e.(WordAddedEvent)
+		g.SubmittedWords = append(g.SubmittedWords, SubmittedWord{
+			Word:     event.Word,
+			PlayerId: event.PlayerId,
+		})
+		return g
+
+	case Round1Started:
+		g.Phase = "round-1"
+		return g
+
+	case Round2Started:
+		g.Phase = "round-2"
+		return g
+
+	case Round3Started:
+		g.Phase = "round-3"
+		return g
+
+	case GuessingStarted:
+		g.RemainingWords = make([]string, len(g.SubmittedWords))
+		for i, word := range g.SubmittedWords {
+			g.RemainingWords[i] = word.Word
+		}
+
+		// TODO: randomly shuffle the words
+
+		return g
+
+	case GuessingFinished:
+		// TODO: notify all players, that the round is done?
+		// TODO: on ui show a loading screen, then wait for someone to press round2started?
+		return g
+
+	case GameFinished:
+		// TODO: show scores
+		return g
+	}
+
+	// You should never make it here, handle all possible events in the switch statement above
+	panic("Unknown EventName")
+}
