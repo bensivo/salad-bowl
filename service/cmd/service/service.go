@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"github.com/bensivo/salad-bowl/service/pkg/game"
+	"github.com/bensivo/salad-bowl/service/pkg/game/http"
+)
 
 func main() {
-	fmt.Println("hi")
+	gameService := game.NewGameService()
+
+	http.StartHttpGameService(gameService)
 }
