@@ -2,6 +2,11 @@ version: '3'
 
 
 tasks:
+  install:
+    cmds:
+      - go mod tidy
+      - cd e2e && npm i
+
   build:
     cmds:
       - go build cmd/app/app.go
@@ -22,3 +27,12 @@ tasks:
     cmds:
       - go test -coverprofile=coverage.out ./...
       - go tool cover -html=coverage.out 
+
+  e2e:
+    dir: e2e
+    cmds:
+      - npx jest
+  
+  precommit:
+    - task: build
+    - task: test

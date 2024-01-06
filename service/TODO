@@ -1,6 +1,4 @@
 Features:
-- Add e2e tests for http_game_service.go
-- Add an HTTP logger
 - Implement the GameEngine, applies events to the game service to update game state
 - Implement Websockets, send events, and receive an event whenever game state updates
 - Update the UI code appropriately

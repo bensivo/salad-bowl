@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/bensivo/salad-bowl/service/pkg/game"
+	"github.com/bensivo/salad-bowl/service/pkg/log"
 	"github.com/bensivo/salad-bowl/service/pkg/util"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -15,8 +16,9 @@ import (
 func StartHttpGameService(gameService game.GameService) {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Creating new game")
+	r.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
+		logHTTP(r)
+		log.Info("Creating new game")
 		game, err := gameService.Create(util.RandStringId())
 		if err != nil {
 			fmt.Println("Error creating new game", err)
@@ -34,8 +36,9 @@ func StartHttpGameService(gameService game.GameService) {
 	}).
 		Methods("POST")
 
-	r.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Getting all games")
+	r.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
+		logHTTP(r)
+		log.Info("Getting all games")
 		games, err := gameService.GetAll()
 		if err != nil {
 			fmt.Println(err)
@@ -58,39 +61,46 @@ func StartHttpGameService(gameService game.GameService) {
 	}).
 		Methods("GET")
 
-	r.HandleFunc("/game/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/games/{id}", func(w http.ResponseWriter, r *http.Request) {
+		logHTTP(r)
 		id, ok := mux.Vars(r)["id"]
 		if !ok {
 			writeErr(w, 400, errors.New("no id param given"))
 			return
 		}
 
-		fmt.Printf("Getting game %s\n", id)
-		game, err := gameService.GetOne(id)
+		log.Infof("Getting game %s\n", id)
+		g, err := gameService.GetOne(id)
 		if err != nil {
+			if errors.Is(err, game.ErrNotFound) {
+				writeErr(w, 404, err)
+				return
+			}
+
 			fmt.Println(err)
 			writeErr(w, 500, err)
 			return
 		}
 
 		writeJson(w, 200, map[string]interface{}{
-			"id":             game.ID,
-			"createdAt":      game.CreatedAt,
-			"phase":          game.Phase,
-			"submittedWords": game.SubmittedWords,
-			"players":        game.Players,
+			"id":             g.ID,
+			"createdAt":      g.CreatedAt,
+			"phase":          g.Phase,
+			"submittedWords": g.SubmittedWords,
+			"players":        g.Players,
 		})
 	}).
 		Methods("GET")
 
-	r.HandleFunc("/game/{id}", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/games/{id}", func(w http.ResponseWriter, r *http.Request) {
+		logHTTP(r)
 		id, ok := mux.Vars(r)["id"]
 		if !ok {
 			writeErr(w, 400, errors.New("no id param given"))
 			return
 		}
 
-		fmt.Printf("Deleting game %s\n", id)
+		log.Infof("Deleting game %s\n", id)
 		err := gameService.Delete(id)
 		if err != nil {
 			fmt.Println(err)
@@ -104,14 +114,21 @@ func StartHttpGameService(gameService game.GameService) {
 	}).
 		Methods("DELETE")
 
-	fmt.Println("Starting websocket server at port 8080")
-	http.ListenAndServe(":8080", handlers.CORS()(r))
+	log.Info("Starting websocket server at port 8080")
+	err := http.ListenAndServe(":8080", handlers.CORS()(r))
+	if err != nil {
+		log.Infof("Failed to start server: %v\n", err)
+	}
+}
+
+func logHTTP(r *http.Request) {
+	log.Infof("%s %s\n", r.Method, r.URL)
 }
 
 func writeJsonArr(w http.ResponseWriter, statusCode int, payload []map[string]interface{}) {
 	resBytes, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("Error serializing json response", err)
+		log.Infof("Error serializing json response %v\n", err)
 		w.WriteHeader(500)
 		w.Write([]byte(fmt.Sprintf("%v", err)))
 	}
@@ -123,7 +140,7 @@ func writeJsonArr(w http.ResponseWriter, statusCode int, payload []map[string]in
 func writeJson(w http.ResponseWriter, statusCode int, payload map[string]interface{}) {
 	resBytes, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("Error serializing json response", err)
+		log.Infof("Error serializing json response %v\n", err)
 		w.WriteHeader(500)
 		w.Write([]byte(fmt.Sprintf("%v", err)))
 	}
