@@ -1,5 +1,0 @@
-inpackage: True
-inpackage-suffix: True
-testonly: False
-with-expecter: True
-keeptree: False
