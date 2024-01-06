@@ -1,0 +1,15 @@
+version: '3'
+
+
+tasks:
+  run:
+    cmds:
+      - go run cmd/service/service.go
+  test:
+    cmds:
+      - go test ./...
+
+  test-cover:
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out 
