@@ -1,0 +1,12 @@
+Features:
+- Add e2e tests for http_game_service.go
+- Add an HTTP logger
+- Implement the GameEngine, applies events to the game service to update game state
+- Implement Websockets, send events, and receive an event whenever game state updates
+- Update the UI code appropriately
+
+Tech Debt:
+- In http_game_service.go, update serialization to use JSON tags on the game struct
+
+Stretch Goals:
+- Implement game state using event-sourcing instead of transactional updates

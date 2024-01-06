@@ -16,8 +16,7 @@ func StartHttpGameService(gameService game.GameService) {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Request to create new game")
-
+		fmt.Println("Creating new game")
 		game, err := gameService.Create(util.RandStringId())
 		if err != nil {
 			fmt.Println("Error creating new game", err)
@@ -36,6 +35,7 @@ func StartHttpGameService(gameService game.GameService) {
 		Methods("POST")
 
 	r.HandleFunc("/game", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("Getting all games")
 		games, err := gameService.GetAll()
 		if err != nil {
 			fmt.Println(err)
@@ -65,6 +65,7 @@ func StartHttpGameService(gameService game.GameService) {
 			return
 		}
 
+		fmt.Printf("Getting game %s\n", id)
 		game, err := gameService.GetOne(id)
 		if err != nil {
 			fmt.Println(err)
@@ -89,6 +90,7 @@ func StartHttpGameService(gameService game.GameService) {
 			return
 		}
 
+		fmt.Printf("Deleting game %s\n", id)
 		err := gameService.Delete(id)
 		if err != nil {
 			fmt.Println(err)

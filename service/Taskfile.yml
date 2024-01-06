@@ -2,9 +2,18 @@ version: '3'
 
 
 tasks:
+  build:
+    cmds:
+      - go build cmd/app/app.go
+
   run:
     cmds:
-      - go run cmd/service/service.go
+      - go run cmd/app/app.go
+
+  dev:
+    cmds:
+      - air --build.cmd "task build" --build.bin "./app"
+
   test:
     cmds:
       - go test ./...
