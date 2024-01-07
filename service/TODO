@@ -1,4 +1,5 @@
 Features:
+- Add the gameService, between the gameDb and the httpGameService
 - Implement the GameEngine, applies events to the game service to update game state
 - Implement Websockets, send events, and receive an event whenever game state updates
 - Update the UI code appropriately

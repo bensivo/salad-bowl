@@ -7,13 +7,14 @@ import (
 	"net/http"
 
 	"github.com/bensivo/salad-bowl/service/pkg/game"
+	"github.com/bensivo/salad-bowl/service/pkg/game/db"
 	"github.com/bensivo/salad-bowl/service/pkg/log"
 	"github.com/bensivo/salad-bowl/service/pkg/util"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-func StartHttpGameService(gameService game.GameService) {
+func StartHttpGameService(gameService game.GameDb) {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +73,7 @@ func StartHttpGameService(gameService game.GameService) {
 		log.Infof("Getting game %s\n", id)
 		g, err := gameService.GetOne(id)
 		if err != nil {
-			if errors.Is(err, game.ErrNotFound) {
+			if errors.Is(err, db.ErrNotFound) {
 				writeErr(w, 404, err)
 				return
 			}

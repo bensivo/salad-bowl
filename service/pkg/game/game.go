@@ -28,3 +28,23 @@ type SubmittedWord struct {
 	Word     string `json:"word"`
 	PlayerId string `json:"playerId"`
 }
+
+// GameDb defines the functions used for persisting game state
+type GameDb interface {
+	Create(ID string) (*Game, error)
+	GetAll() ([]*Game, error)
+	GetOne(ID string) (*Game, error)
+	Update(ID string, game *Game) error
+	Delete(ID string) error
+}
+
+// GameService defines the functions exposed by this module
+type GameService interface {
+	Create() (*Game, error)
+	GetAll() ([]*Game, error)
+	GetOne(ID string) (*Game, error)
+	Cleanup() error // Remove any empty games, which are more than 30 seconds old
+
+	HandleEvent(ID string, event []byte) // Handle a received game event, applying it to the appropriate game, and making any updates to game state
+	// TODO: how are people supposed to get notified of changes in game state? Do we add a subscriber pattern?
+}
