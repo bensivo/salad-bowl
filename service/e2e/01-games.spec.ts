@@ -2,7 +2,6 @@ import 'jest';
 import axios from 'axios';
 
 describe('games rest api', () => {
-
     describe('POST /games', () => {
         it('creates a new game', async () => {
             const res = await axios.request({

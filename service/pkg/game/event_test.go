@@ -16,28 +16,42 @@ func assertEqual(t *testing.T, actual any, expected any) {
 }
 
 func TestGameEventFromJSON(t *testing.T) {
-	str := `{"name":"player-joined","timestamp":"2023-12-25T00:00:00Z00:00","playerId":"asdf","playerName":"John Doe"}`
+	str := `{
+		"name": "player-joined",
+		"timestamp": "2023-12-25T00:00:00Z00:00",
+		"payload": {
+			"playerId": "asdf",
+			"playerName": "John Doe"
+		}
+	}`
 
-	event := game.PlayerJoinedEvent{}
+	var event game.GameEvent
 	err := json.Unmarshal([]byte(str), &event)
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("failed parsing event %v\n", err)
 	}
 
 	assertEqual(t, event.Name, game.PlayerJoined)
 	assertEqual(t, event.Timestamp, "2023-12-25T00:00:00Z00:00")
-	assertEqual(t, event.PlayerID, "asdf")
-	assertEqual(t, event.PlayerName, "John Doe")
+
+	var payload game.PlayerJoinedEventPayload
+	err = game.ParseGameEventPayload(event.Payload, &payload)
+	if err != nil {
+		t.Errorf("failed parsing payload %v\n", err)
+	}
+
+	assertEqual(t, payload.PlayerID, "asdf")
+	assertEqual(t, payload.PlayerName, "John Doe")
 }
 
 func TestGameEventToJSON(t *testing.T) {
-	event := game.PlayerJoinedEvent{
-		EventMetadata: game.EventMetadata{
-			Name:      game.PlayerJoined,
-			Timestamp: "2023-12-25T00:00:00Z00:00",
+	event := game.GameEvent{
+		Name:      game.PlayerJoined,
+		Timestamp: "2023-12-25T00:00:00Z00:00",
+		Payload: game.PlayerJoinedEventPayload{
+			PlayerID:   "asdf",
+			PlayerName: "John Doe",
 		},
-		PlayerID:   "asdf",
-		PlayerName: "John Doe",
 	}
 
 	bytes, err := json.Marshal(event)
@@ -45,5 +59,5 @@ func TestGameEventToJSON(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	assertEqual(t, string(bytes), `{"name":"player-joined","timestamp":"2023-12-25T00:00:00Z00:00","playerId":"asdf","playerName":"John Doe"}`)
+	assertEqual(t, string(bytes), `{"name":"player-joined","timestamp":"2023-12-25T00:00:00Z00:00","payload":{"playerId":"asdf","playerName":"John Doe"}}`)
 }

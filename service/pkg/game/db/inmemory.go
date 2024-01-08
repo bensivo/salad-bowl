@@ -17,7 +17,7 @@ type InMemoryGameDb struct {
 
 var _ game.GameDb = (*InMemoryGameDb)(nil)
 
-func NewInMemoryGameDb() game.GameDb {
+func NewInMemoryGameDb() *InMemoryGameDb {
 	return &InMemoryGameDb{
 		games: make(map[string]*game.Game),
 	}

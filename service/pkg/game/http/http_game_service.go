@@ -4,23 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/bensivo/salad-bowl/service/pkg/game"
 	"github.com/bensivo/salad-bowl/service/pkg/game/db"
 	"github.com/bensivo/salad-bowl/service/pkg/log"
-	"github.com/bensivo/salad-bowl/service/pkg/util"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-func StartHttpGameService(gameService game.GameDb) {
+func StartHttpGameService(gameService game.GameService) {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/games", func(w http.ResponseWriter, r *http.Request) {
 		logHTTP(r)
 		log.Info("Creating new game")
-		game, err := gameService.Create(util.RandStringId())
+		game, err := gameService.Create()
 		if err != nil {
 			fmt.Println("Error creating new game", err)
 			w.WriteHeader(500)
@@ -114,6 +114,54 @@ func StartHttpGameService(gameService game.GameDb) {
 		})
 	}).
 		Methods("DELETE")
+
+	r.HandleFunc("/games/{id}/event", func(w http.ResponseWriter, r *http.Request) {
+		logHTTP(r)
+		id, ok := mux.Vars(r)["id"]
+		if !ok {
+			writeErr(w, 400, errors.New("no id param given"))
+			return
+		}
+		log.Infof("Handling event for game %s\n", id)
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Infof("failed reading request body: %v", err)
+			writeErr(w, 400, errors.New("failed reading request body"))
+			return
+		}
+
+		var event game.GameEvent
+		err = json.Unmarshal(body, &event)
+		if err != nil {
+			log.Infof("failed parsing event json: %v", err)
+			writeErr(w, 400, errors.New("failed parsing event json"))
+			return
+		}
+
+		err = gameService.HandleEvent(id, event)
+		if err != nil {
+			log.Infof("failed handling event: %v", err)
+			writeErr(w, 500, errors.New("failed handling event"))
+			return
+		}
+
+		// game, err := gameService.Create(util.RandStringId())
+		// if err != nil {
+		// 	fmt.Println("Error creating new game", err)
+		// 	w.WriteHeader(500)
+		// 	w.Write([]byte(fmt.Sprintf("%v", err)))
+		// }
+
+		// writeJson(w, 201, map[string]interface{}{
+		// 	"id":             game.ID,
+		// 	"createdAt":      game.CreatedAt,
+		// 	"phase":          game.Phase,
+		// 	"submittedWords": game.SubmittedWords,
+		// 	"players":        game.Players,
+		// })
+	}).
+		Methods("POST")
 
 	log.Info("Starting websocket server at port 8080")
 	err := http.ListenAndServe(":8080", handlers.CORS()(r))

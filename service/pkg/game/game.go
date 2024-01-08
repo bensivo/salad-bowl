@@ -16,12 +16,12 @@ type Game struct {
 type Player struct {
 	PlayerID   string
 	PlayerName string
-	TeamName   string
 }
 
 type Team struct {
-	TeamName string
-	Score    int64
+	TeamName  string
+	Score     int64
+	PlayerIDs []string
 }
 
 type SubmittedWord struct {
@@ -43,8 +43,8 @@ type GameService interface {
 	Create() (*Game, error)
 	GetAll() ([]*Game, error)
 	GetOne(ID string) (*Game, error)
-	Cleanup() error // Remove any empty games, which are more than 30 seconds old
+	Delete(ID string) error
 
-	HandleEvent(ID string, event []byte) // Handle a received game event, applying it to the appropriate game, and making any updates to game state
+	HandleEvent(ID string, event GameEvent) error // Handle a received game event, applying it to the appropriate game, and making any updates to game state
 	// TODO: how are people supposed to get notified of changes in game state? Do we add a subscriber pattern?
 }

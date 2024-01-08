@@ -1,10 +1,12 @@
 package game
 
+import "encoding/json"
+
 type EventName string
 
 const (
-	PlayerJoined EventName = "player-joined"
-	// PlayerLeft       EventName = "player-left"
+	PlayerJoined EventName = "player-joined" // Add a new player to the game
+	PlayerLeft   EventName = "player-left"   // Remove a player from the game
 	// TeamJoined       EventName = "team-joined"
 	// WordBankStarted  EventName = "word-bank-started"
 	// WordAdded        EventName = "word-added"
@@ -19,23 +21,38 @@ const (
 )
 
 // EventMetadata contains meta information common to all events
-type EventMetadata struct {
+type GameEvent struct {
 	Name      EventName `json:"name"`
 	Timestamp string    `json:"timestamp"`
+	Payload   any       `json:"payload"`
 }
 
-// Payload for the PlayerJoined GameEvent
-type PlayerJoinedEvent struct {
-	EventMetadata
+type GameEventPayload interface {
+	PlayerJoinedEventPayload | any
+}
+
+func ParseGameEventPayload[T GameEventPayload](payload any, ptr *T) error {
+	bytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(bytes, ptr)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type PlayerJoinedEventPayload struct {
 	PlayerID   string `json:"playerId"`
 	PlayerName string `json:"playerName"`
 }
 
-// // Event for the PlayerLeft GameEvent
-// type PlayerLeftEvent struct {
-// 	EventMetadata
-// 	PlayerID string
-// }
+type PlayerLeftEventPayload struct {
+	PlayerID string `json:"playerId"`
+}
 
 // // Event for the TeamJoined GameEvent
 // type TeamJoinedEvent struct {

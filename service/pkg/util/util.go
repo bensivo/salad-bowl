@@ -23,3 +23,7 @@ func RandStringId() string {
 	b[3] = '-'
 	return string(b)
 }
+
+func NowIso8601() string {
+	return time.Now().UTC().Format("2006-01-02T15:04:05Z")
+}
