@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/bensivo/salad-bowl/service/pkg/game"
 	"github.com/bensivo/salad-bowl/service/pkg/game/db"
 )
 
@@ -15,16 +16,13 @@ func assertNotNil(t *testing.T, err error) {
 	}
 }
 
-func TestCreateReturnsGame(t *testing.T) {
+func TestSave(t *testing.T) {
 	gameDb := db.NewInMemoryGameDb()
 
-	game, err := gameDb.Create("1111")
+	err := gameDb.Save(&game.Game{
+		ID: "1",
+	})
 	assertNotNil(t, err)
-
-	if game.ID != "1111" {
-		t.Errorf("game.ID does not match passed ID")
-		t.FailNow()
-	}
 }
 
 func TestGetAllReturnsGames(t *testing.T) {
@@ -32,8 +30,9 @@ func TestGetAllReturnsGames(t *testing.T) {
 
 	// Add 3 games
 	for i := 0; i < 3; i++ {
-		_, err := gameDb.Create(fmt.Sprintf("%d", i))
-		assertNotNil(t, err)
+		gameDb.Save(&game.Game{
+			ID: fmt.Sprintf("%d", i),
+		})
 	}
 
 	games, err := gameDb.GetAll()
@@ -50,7 +49,9 @@ func TestGetAllReturnsGames(t *testing.T) {
 func TestGetOneReturnsGame(t *testing.T) {
 	gameDb := db.NewInMemoryGameDb()
 
-	_, err := gameDb.Create("1111")
+	err := gameDb.Save(&game.Game{
+		ID: "1111",
+	})
 	assertNotNil(t, err)
 
 	game, err := gameDb.GetOne("1111")
@@ -76,14 +77,19 @@ func TestGetOneThrowsOnNotFound(t *testing.T) {
 	}
 }
 
-func TestUpdateReplacesPreviousValue(t *testing.T) {
+func TestSaveReplacesPreviousValue(t *testing.T) {
 	gameDb := db.NewInMemoryGameDb()
 
-	g, err := gameDb.Create("1111")
+	err := gameDb.Save(&game.Game{
+		ID:    "1111",
+		Phase: "fdsa",
+	})
 	assertNotNil(t, err)
 
-	g.Phase = "asdf"
-	err = gameDb.Update("1111", g)
+	err = gameDb.Save(&game.Game{
+		ID:    "1111",
+		Phase: "asdf",
+	})
 	assertNotNil(t, err)
 
 	newG, err := gameDb.GetOne("1111")
@@ -97,7 +103,9 @@ func TestUpdateReplacesPreviousValue(t *testing.T) {
 func TestDeleteRemovesGame(t *testing.T) {
 	gameDb := db.NewInMemoryGameDb()
 
-	_, err := gameDb.Create("1111")
+	err := gameDb.Save(&game.Game{
+		ID: "1111",
+	})
 	assertNotNil(t, err)
 
 	err = gameDb.Delete("1111")

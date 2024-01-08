@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"errors"
 	"slices"
-	"time"
 
 	"github.com/bensivo/salad-bowl/service/pkg/game"
 )
@@ -24,20 +23,9 @@ func NewInMemoryGameDb() *InMemoryGameDb {
 }
 
 // Create implements GameDb.
-func (gs *InMemoryGameDb) Create(ID string) (*game.Game, error) {
-	game := &game.Game{
-		ID:               ID,
-		CreatedAt:        time.Now(),
-		Players:          []game.Player{},
-		Teams:            []game.Team{},
-		Phase:            "lobby",
-		SubmittedWords:   []game.SubmittedWord{},
-		RemainingWords:   []string{},
-		RemainingPlayers: []string{},
-	}
-
-	gs.games[ID] = game
-	return game, nil
+func (gs *InMemoryGameDb) Save(g *game.Game) error {
+	gs.games[g.ID] = g
+	return nil
 }
 
 // GetAll implements GameDb.

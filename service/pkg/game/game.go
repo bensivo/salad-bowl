@@ -14,14 +14,14 @@ type Game struct {
 }
 
 type Player struct {
-	PlayerID   string
-	PlayerName string
+	PlayerID   string `json:"playerId"`
+	PlayerName string `json:"playerName"`
 }
 
 type Team struct {
-	TeamName  string
-	Score     int64
-	PlayerIDs []string
+	TeamName  string   `json:"teamName"`
+	Score     int64    `json:"score"`
+	PlayerIDs []string `json:"playerIds"`
 }
 
 type SubmittedWord struct {
@@ -31,10 +31,9 @@ type SubmittedWord struct {
 
 // GameDb defines the functions used for persisting game state
 type GameDb interface {
-	Create(ID string) (*Game, error)
+	Save(game *Game) error // acts like an 'upsert', inserts or updates based on game.ID
 	GetAll() ([]*Game, error)
 	GetOne(ID string) (*Game, error)
-	Update(ID string, game *Game) error
 	Delete(ID string) error
 }
 

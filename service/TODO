@@ -1,10 +1,15 @@
+Events:
+- Team Joined event - implement a player joining a different team, leave the previous team and join the new one
+
 Features:
-- Implement the GameEngine, applies events to the game service to update game state
 - Implement Websockets, send events, and receive an event whenever game state updates
 - Update the UI code appropriately
 
 Tech Debt:
-- In http_game_service.go, update serialization to use JSON tags on the game struct
+- In http_game_service.go, update serialization to use JSON tags on the game struct.
+- Refactor service.go, create a different function for each event, instead of one giant switch statement.
+- In logging package, add warn and error log messages
+- In logging package, add logger names
 
 Stretch Goals:
 - Implement game state using event-sourcing instead of transactional updates

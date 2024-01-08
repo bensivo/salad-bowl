@@ -1,12 +1,16 @@
 package game
 
 import (
+	"errors"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/bensivo/salad-bowl/service/pkg/log"
 	"github.com/bensivo/salad-bowl/service/pkg/util"
 )
+
+var ErrPlayerNotFound = errors.New("player not found")
 
 type service struct {
 	db GameDb
@@ -23,7 +27,33 @@ func NewGameService(db GameDb) GameService {
 // Create implements GameService.
 func (svc *service) Create() (*Game, error) {
 	id := util.RandStringId()
-	g, err := svc.db.Create(id)
+	g := &Game{
+		ID:        id,
+		CreatedAt: time.Now(),
+		Players:   []Player{},
+		Teams: []Team{
+			{
+				TeamName:  "Red",
+				Score:     0,
+				PlayerIDs: []string{},
+			},
+			{
+				TeamName:  "Blue",
+				Score:     0,
+				PlayerIDs: []string{},
+			},
+			{
+				TeamName:  "Spectator",
+				Score:     0,
+				PlayerIDs: []string{},
+			},
+		},
+		Phase:            "lobby",
+		SubmittedWords:   []SubmittedWord{},
+		RemainingWords:   []string{},
+		RemainingPlayers: []string{},
+	}
+	err := svc.db.Save(g)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +108,7 @@ func (svc *service) HandleEvent(gameID string, event GameEvent) error {
 			PlayerName: payload.PlayerName,
 		})
 
-		err = svc.db.Update(game.ID, game)
+		err = svc.db.Save(game)
 		if err != nil {
 			return fmt.Errorf("failed updating game state %v", err)
 		}
@@ -91,11 +121,55 @@ func (svc *service) HandleEvent(gameID string, event GameEvent) error {
 
 		log.Infof("Received player left event %s\n", payload.PlayerID)
 
+		// Remove player from game.Players
 		game.Players = slices.DeleteFunc(game.Players, func(p Player) bool {
 			return p.PlayerID == payload.PlayerID
 		})
 
-		err = svc.db.Update(game.ID, game)
+		// Remove player from all teams
+		for i := range game.Teams {
+			game.Teams[i].PlayerIDs = slices.DeleteFunc(game.Teams[i].PlayerIDs, func(playerId string) bool {
+				return playerId == payload.PlayerID
+			})
+		}
+
+		err = svc.db.Save(game)
+		if err != nil {
+			return fmt.Errorf("failed updating game state %v", err)
+		}
+	case TeamJoined:
+		var payload TeamJoinedEventPayload
+		err := ParseGameEventPayload(event.Payload, &payload)
+		if err != nil {
+			return fmt.Errorf("failed parsing event payload: %v", err)
+		}
+
+		log.Infof("Received team joined event Player:%s Team:%s\n", payload.PlayerID, payload.TeamName)
+
+		// Make sure player exists
+		exists := slices.ContainsFunc(game.Players, func(p Player) bool {
+			return p.PlayerID == payload.PlayerID
+		})
+		if !exists {
+			log.Infof("Player %s does not exist\n", payload.PlayerID)
+			return ErrPlayerNotFound
+		}
+
+		for i, team := range game.Teams {
+			if team.TeamName == payload.TeamName {
+				// Check for duplicates, don't add the player to the same team twice
+				if slices.Contains(team.PlayerIDs, payload.PlayerID) {
+					return nil
+				}
+
+				log.Infof("Adding player %s to team %d\n", payload.PlayerID, i)
+				game.Teams[i].PlayerIDs = append(team.PlayerIDs, payload.PlayerID)
+			}
+		}
+
+		// TODO: handle player which is already in a team, leaving it and joining another team
+
+		err = svc.db.Save(game)
 		if err != nil {
 			return fmt.Errorf("failed updating game state %v", err)
 		}

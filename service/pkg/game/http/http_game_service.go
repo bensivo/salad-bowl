@@ -33,6 +33,7 @@ func StartHttpGameService(gameService game.GameService) {
 			"phase":          game.Phase,
 			"submittedWords": game.SubmittedWords,
 			"players":        game.Players,
+			"teams":          game.Teams,
 		})
 	}).
 		Methods("POST")
@@ -55,6 +56,7 @@ func StartHttpGameService(gameService game.GameService) {
 				"phase":          game.Phase,
 				"submittedWords": game.SubmittedWords,
 				"players":        game.Players,
+				"teams":          game.Teams,
 			})
 		}
 
@@ -89,6 +91,7 @@ func StartHttpGameService(gameService game.GameService) {
 			"phase":          g.Phase,
 			"submittedWords": g.SubmittedWords,
 			"players":        g.Players,
+			"teams":          g.Teams,
 		})
 	}).
 		Methods("GET")
@@ -142,7 +145,7 @@ func StartHttpGameService(gameService game.GameService) {
 		err = gameService.HandleEvent(id, event)
 		if err != nil {
 			log.Infof("failed handling event: %v", err)
-			writeErr(w, 500, errors.New("failed handling event"))
+			writeErr(w, 500, err)
 			return
 		}
 

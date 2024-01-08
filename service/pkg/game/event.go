@@ -7,7 +7,7 @@ type EventName string
 const (
 	PlayerJoined EventName = "player-joined" // Add a new player to the game
 	PlayerLeft   EventName = "player-left"   // Remove a player from the game
-	// TeamJoined       EventName = "team-joined"
+	TeamJoined   EventName = "team-joined"   // Join a team, or switch teams
 	// WordBankStarted  EventName = "word-bank-started"
 	// WordAdded        EventName = "word-added"
 	// Round1Started    EventName = "round-1-Started"
@@ -54,12 +54,10 @@ type PlayerLeftEventPayload struct {
 	PlayerID string `json:"playerId"`
 }
 
-// // Event for the TeamJoined GameEvent
-// type TeamJoinedEvent struct {
-// 	EventMetadata
-// 	PlayerID string
-// 	TeamName string
-// }
+type TeamJoinedEventPayload struct {
+	PlayerID string
+	TeamName string
+}
 
 // // Event for the WordBankStarted GameEvent
 // type WordBankStartedEvent struct {
