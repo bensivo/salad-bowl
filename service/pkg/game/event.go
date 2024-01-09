@@ -5,9 +5,10 @@ import "encoding/json"
 type EventName string
 
 const (
-	PlayerJoined EventName = "player-joined" // Add a new player to the game
+	PlayerJoined EventName = "player-joined" // Add a player to the game
 	PlayerLeft   EventName = "player-left"   // Remove a player from the game
 	TeamJoined   EventName = "team-joined"   // Join a team, or switch teams
+
 	// WordBankStarted  EventName = "word-bank-started"
 	// WordAdded        EventName = "word-added"
 	// Round1Started    EventName = "round-1-Started"
@@ -20,7 +21,7 @@ const (
 	// GameFinished     EventName = "game-finished"
 )
 
-// EventMetadata contains meta information common to all events
+// Base object for all events. The type for 'Payload' will depend on which EventName is used.
 type GameEvent struct {
 	Name      EventName `json:"name"`
 	Timestamp string    `json:"timestamp"`
@@ -58,55 +59,3 @@ type TeamJoinedEventPayload struct {
 	PlayerID string
 	TeamName string
 }
-
-// // Event for the WordBankStarted GameEvent
-// type WordBankStartedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the WordAdded GameEvent
-// type WordAddedEvent struct {
-// 	EventMetadata
-// 	Word     string
-// 	PlayerId string
-// }
-
-// // Event for the Round1Started GameEvent
-// type Round1StartedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the Round2Started GameEvent
-// type Round2StartedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the Round3Started GameEvent
-// type Round3StartedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the GuessingStarted GameEvent
-// type GuessingStartedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the WordGuessed GameEvent
-// type WordGuessedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the WordSkipped GameEvent
-// type WordSkippedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the GuessingFinished GameEvent
-// type GuessingFinishedEvent struct {
-// 	EventMetadata
-// }
-
-// // Event for the GameFinished GameEvent
-// type GameFinishedEvent struct {
-// 	EventMetadata
-// }

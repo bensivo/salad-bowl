@@ -2,6 +2,7 @@ package game_test
 
 import (
 	"errors"
+	"slices"
 	"testing"
 
 	"github.com/bensivo/salad-bowl/service/pkg/game"
@@ -216,6 +217,55 @@ func TestHandleEvent(t *testing.T) {
 
 		if !errors.Is(err, game.ErrPlayerNotFound) {
 			t.Errorf("expected error not returned")
+		}
+	})
+
+	t.Run("TeamJoinedEvent - removes player from old team", func(t *testing.T) {
+		// Given a game exists
+		util.SeedRand(0)
+		gameDb := db.NewInMemoryGameDb()
+		gameSvc := game.NewGameService(gameDb)
+		g, _ := gameSvc.Create()
+
+		// Given a player joined
+		gameSvc.HandleEvent(g.ID, game.GameEvent{
+			Name:      game.PlayerJoined,
+			Timestamp: util.NowIso8601(),
+			Payload: game.PlayerJoinedEventPayload{
+				PlayerID:   "11111",
+				PlayerName: "Alice",
+			},
+		})
+
+		// Given the player joined the Red Team
+		gameSvc.HandleEvent(g.ID, game.GameEvent{
+			Name:      game.TeamJoined,
+			Timestamp: util.NowIso8601(),
+			Payload: game.TeamJoinedEventPayload{
+				PlayerID: "11111",
+				TeamName: "Red",
+			},
+		})
+
+		// When the player joins the Blue Team
+		gameSvc.HandleEvent(g.ID, game.GameEvent{
+			Name:      game.TeamJoined,
+			Timestamp: util.NowIso8601(),
+			Payload: game.TeamJoinedEventPayload{
+				PlayerID: "11111",
+				TeamName: "Blue",
+			},
+		})
+
+		// Then the game shows the player in the blue team, and not the red team
+		g, _ = gameSvc.GetOne(g.ID)
+		t.Log(g.Teams[0].PlayerIDs)
+		t.Log(g.Teams[1].PlayerIDs)
+		if slices.Contains(g.Teams[0].PlayerIDs, "11111") {
+			t.Errorf("player 11111 is not supposed to be in the red team")
+		}
+		if !slices.Contains(g.Teams[1].PlayerIDs, "11111") {
+			t.Errorf("player 11111 not found in the blue team")
 		}
 	})
 

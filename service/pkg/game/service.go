@@ -156,12 +156,13 @@ func (svc *service) HandleEvent(gameID string, event GameEvent) error {
 		}
 
 		for i, team := range game.Teams {
-			if team.TeamName == payload.TeamName {
-				// Check for duplicates, don't add the player to the same team twice
-				if slices.Contains(team.PlayerIDs, payload.PlayerID) {
-					return nil
-				}
 
+			// Remove player from all teams, preventing a player from being in 2 at once.
+			game.Teams[i].PlayerIDs = slices.DeleteFunc(game.Teams[i].PlayerIDs, func(playerId string) bool {
+				return playerId == payload.PlayerID
+			})
+
+			if team.TeamName == payload.TeamName {
 				log.Infof("Adding player %s to team %d\n", payload.PlayerID, i)
 				game.Teams[i].PlayerIDs = append(team.PlayerIDs, payload.PlayerID)
 			}

@@ -120,6 +120,61 @@ describe('lobby', () => {
             url: `http://localhost:8080/games/${gameId}`,
         })
     });
+
+    it('player switch teams', async () => {
+        // Create a game
+        let res = await axios.request({
+            method: 'POST',
+            url: 'http://localhost:8080/games',
+            data: {},
+        });
+        const gameId = res.data.id;
+
+        // Send player-joined
+        await sendEvent(gameId, {
+            name: 'player-joined',
+            timestamp: new Date().toISOString(),
+            payload: {
+                playerId: '1111',
+                playerName: 'alice',
+            }
+        });
+
+        // Send team-joined - Red
+        await sendEvent(gameId, {
+            name: 'team-joined',
+            timestamp: new Date().toISOString(),
+            payload: {
+                playerId: '1111',
+                teamName: 'Red',
+            }
+        });
+
+        // Send team-joined - Blue
+        await sendEvent(gameId, {
+            name: 'team-joined',
+            timestamp: new Date().toISOString(),
+            payload: {
+                playerId: '1111',
+                teamName: 'Blue',
+            }
+        });
+
+        // Player should not be in team red
+        res = await axios.request({
+            method: 'GET',
+            url: `http://localhost:8080/games/${gameId}`,
+        })
+        expect(res.data.teams[0].playerIds).toEqual([])
+        expect(res.data.teams[1].playerIds).toEqual(['1111'])
+
+
+         // Cleanup
+         await axios.request({
+            method: 'DELETE',
+            url: `http://localhost:8080/games/${gameId}`,
+        })
+    });
 });
 
 async function sendEvent(gameId: string, event: any) {

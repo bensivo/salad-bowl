@@ -148,21 +148,6 @@ func StartHttpGameService(gameService game.GameService) {
 			writeErr(w, 500, err)
 			return
 		}
-
-		// game, err := gameService.Create(util.RandStringId())
-		// if err != nil {
-		// 	fmt.Println("Error creating new game", err)
-		// 	w.WriteHeader(500)
-		// 	w.Write([]byte(fmt.Sprintf("%v", err)))
-		// }
-
-		// writeJson(w, 201, map[string]interface{}{
-		// 	"id":             game.ID,
-		// 	"createdAt":      game.CreatedAt,
-		// 	"phase":          game.Phase,
-		// 	"submittedWords": game.SubmittedWords,
-		// 	"players":        game.Players,
-		// })
 	}).
 		Methods("POST")
 

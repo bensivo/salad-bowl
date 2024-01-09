@@ -1,5 +1,4 @@
 Events:
-- Team Joined event - implement a player joining a different team, leave the previous team and join the new one
 
 Features:
 - Implement Websockets, send events, and receive an event whenever game state updates
@@ -13,3 +12,4 @@ Tech Debt:
 
 Stretch Goals:
 - Implement game state using event-sourcing instead of transactional updates
+- Log all events to a file, and replay. To get a replay of a previous game.
