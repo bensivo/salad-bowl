@@ -2,22 +2,9 @@ version: '3'
 
 
 tasks:
-  install:
+  start:
     cmds:
-      - go mod tidy
-      - cd e2e && npm i
-
-  build:
-    cmds:
-      - go build cmd/app/app.go
-
-  run:
-    cmds:
-      - go run cmd/app/app.go
-
-  dev:
-    cmds:
-      - air --build.cmd "task build" --build.bin "./app"
+      - air --build.cmd "go build cmd/app/app.go" --build.bin "./app"
 
   test:
     cmds:
@@ -32,6 +19,16 @@ tasks:
     dir: e2e
     cmds:
       - npx jest
+
+  e2e-docker:
+    desc: Run the app and e2e test suite in docker containers
+    cmds:
+      - defer: docker rm -f saladbowl-service
+      - defer: docker rm -f saladbowl-service-e2e
+      - docker build -t saladbowl-service-e2e -f ./e2e/Dockerfile ./e2e
+      - docker build -t saladbowl-service ./
+      - docker run --network host -d --name saladbowl-service saladbowl-service
+      - docker run --network host --name saladbowl-service-e2e saladbowl-service-e2e
   
   precommit:
     - task: build
