@@ -29,7 +29,3 @@ tasks:
       - docker build -t saladbowl-service ./
       - docker run --network host -d --name saladbowl-service saladbowl-service
       - docker run --network host --name saladbowl-service-e2e saladbowl-service-e2e
-  
-  precommit:
-    - task: build
-    - task: test
