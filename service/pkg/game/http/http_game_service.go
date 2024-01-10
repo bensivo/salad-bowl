@@ -9,10 +9,20 @@ import (
 
 	"github.com/bensivo/salad-bowl/service/pkg/game"
 	"github.com/bensivo/salad-bowl/service/pkg/game/db"
+	"github.com/bensivo/salad-bowl/service/pkg/game/listener"
 	"github.com/bensivo/salad-bowl/service/pkg/log"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
+
+var upgrader websocket.Upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 func StartHttpGameService(gameService game.GameService) {
 	r := mux.NewRouter()
@@ -28,12 +38,11 @@ func StartHttpGameService(gameService game.GameService) {
 		}
 
 		writeJson(w, 201, map[string]interface{}{
-			"id":             game.ID,
-			"createdAt":      game.CreatedAt,
-			"phase":          game.Phase,
-			"submittedWords": game.SubmittedWords,
-			"players":        game.Players,
-			"teams":          game.Teams,
+			"id":        game.ID,
+			"createdAt": game.CreatedAt,
+			"phase":     game.Phase,
+			"players":   game.Players,
+			"teams":     game.Teams,
 		})
 	}).
 		Methods("POST")
@@ -51,12 +60,11 @@ func StartHttpGameService(gameService game.GameService) {
 		res := make([]map[string]interface{}, 0)
 		for _, game := range games {
 			res = append(res, map[string]interface{}{ // TODO: can we just annotate game with json field annotations?
-				"id":             game.ID,
-				"createdAt":      game.CreatedAt,
-				"phase":          game.Phase,
-				"submittedWords": game.SubmittedWords,
-				"players":        game.Players,
-				"teams":          game.Teams,
+				"id":        game.ID,
+				"createdAt": game.CreatedAt,
+				"phase":     game.Phase,
+				"players":   game.Players,
+				"teams":     game.Teams,
 			})
 		}
 
@@ -86,12 +94,11 @@ func StartHttpGameService(gameService game.GameService) {
 		}
 
 		writeJson(w, 200, map[string]interface{}{
-			"id":             g.ID,
-			"createdAt":      g.CreatedAt,
-			"phase":          g.Phase,
-			"submittedWords": g.SubmittedWords,
-			"players":        g.Players,
-			"teams":          g.Teams,
+			"id":        g.ID,
+			"createdAt": g.CreatedAt,
+			"phase":     g.Phase,
+			"players":   g.Players,
+			"teams":     g.Teams,
 		})
 	}).
 		Methods("GET")
@@ -150,6 +157,29 @@ func StartHttpGameService(gameService game.GameService) {
 		}
 	}).
 		Methods("POST")
+
+	r.HandleFunc("/game/{id}/connect", func(w http.ResponseWriter, r *http.Request) {
+		logHTTP(r)
+		id, ok := mux.Vars(r)["id"]
+		if !ok {
+			writeErr(w, 400, errors.New("no id param given"))
+			return
+		}
+
+		// Create a websocket connection
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			fmt.Println("Error upgrading connection", err)
+			return
+		}
+
+		// Register the websocket listener with the gameService, so it receives game updates
+		websocketGameListener := &listener.WebSocketGameListener{
+			Conn: conn,
+		}
+		gameService.RegisterListener(id, websocketGameListener)
+
+	})
 
 	log.Info("Starting websocket server at port 8080")
 	err := http.ListenAndServe(":8080", handlers.CORS()(r))

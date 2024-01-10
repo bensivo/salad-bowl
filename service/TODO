@@ -2,11 +2,13 @@ Events:
 
 Features:
 - Implement Websockets, send events, and receive an event whenever game state updates
+  - Test websockets
+  - Accept events via websockets in addition to HTTP post
+  - e2e tests using websockets
 - Update the UI code appropriately
 
 Tech Debt:
 - In http_game_service.go, update serialization to use JSON tags on the game struct.
-- Refactor service.go, create a different function for each event, instead of one giant switch statement.
 - In logging package, add warn and error log messages
 - In logging package, add logger names
 
