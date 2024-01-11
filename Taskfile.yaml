@@ -2,20 +2,21 @@ version: '3'
 
 includes:
   service: 
-    taskfile: ./service/Taskfile.yml
-    dir: ./service
+    taskfile: ./apps/service/Taskfile.yml
+    dir: ./apps/service
 
   webapp:
-    taskfile: ./webapp/Taskfile.yml
-    dir: ./webapp
+    taskfile: ./apps/webapp/Taskfile.yml
+    dir: ./apps/webapp
 
 tasks:
-  start:
+  dev-all:
     cmds:
+      # Start the 'dev' task for service and webapp, as background processes
       - |
         source ./scripts/functions.sh;
-        prefix-green "service" task service:start &
-        prefix-yellow "webapp" task webapp:start &
+        prefix-green "service" task service:dev &
+        prefix-yellow "webapp" task webapp:dev &
         wait
 
       # Find the background processes by port number and kill them

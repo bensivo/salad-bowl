@@ -2,7 +2,15 @@ version: '3'
 
 
 tasks:
-  start:
+  install:
+    cmds:
+      - go mod download
+
+  build:
+    cmds:
+      - go build cmd/app/app.go
+
+  dev:
     cmds:
       - air --build.cmd "go build cmd/app/app.go" --build.bin "./app"
 
