@@ -1,40 +1,25 @@
 version: '3'
 
+includes:
+  service: 
+    taskfile: ./service/Taskfile.yml
+    dir: ./service
+
+  webapp:
+    taskfile: ./webapp/Taskfile.yml
+    dir: ./webapp
+
 tasks:
-  precommit:
-    summary: Runs through all local tests to verify commit
+  start:
     cmds:
-      - go clean -testcache
-      - task test
-      - task up
-      - task e2e
-      - task down
-    silent: true
+      - |
+        source ./scripts/functions.sh;
+        prefix-green "service" task service:start &
+        prefix-yellow "webapp" task webapp:start &
+        wait
 
-  up:
-    cmds:
-      - docker-compose up --build -d
-    silent: true
-
-  down:
-    cmds:
-      - docker-compose down
-    silent: true
-
-  e2e:
-    dir: service/e2e
-    cmds:
-      - npm run test
-    silent: true
-
-  generate:
-    dir: service
-    cmds:
-      - go generate ./...
-    silent: true
-
-  test:
-    dir: service
-    cmds:
-      - go test ./...
-    silent: true
+      # Find the background processes by port number and kill them
+      - |
+        source ./scripts/functions.sh;
+        kill-process-by-port 8080
+        kill-process-by-port 3000
