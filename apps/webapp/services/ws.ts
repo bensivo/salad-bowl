@@ -21,7 +21,7 @@ export function init() {
 
     console.log('Connecting WS to', gameId)
 
-    conn = new WebSocket(`${WS_URL}/game/${gameId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
+    conn = new WebSocket(`${WS_URL}/games/${gameId}/connect${!!playerId ? '?playerId=' + playerId : ''}`)
     conn.onmessage = (e) => {
         const msg = JSON.parse(e.data);
         console.log('Received message', msg)

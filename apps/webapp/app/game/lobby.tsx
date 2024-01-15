@@ -1,14 +1,16 @@
 'use client'
-import * as uuid from 'uuid';
-import { useObservableState } from "observable-hooks"
-import { useEffect, useState } from "react"
-import playerStore from "../../services/player-store"
 import { useRouter } from 'next/navigation';
+import { useObservableState } from "observable-hooks";
+import { useEffect, useState } from "react";
+import * as uuid from 'uuid';
+import playerStore from "../../services/player-store";
 import ws from '../../services/ws';
 
-import './lobby.css';
 import gameStore from '@/services/game-store';
 import wordStore from '@/services/wordbank-store';
+import axios from 'axios';
+import { HTTP_URL } from '../constants';
+import './lobby.css';
 
 export default function LobbyPage() {
     const router = useRouter();
@@ -31,14 +33,26 @@ export default function LobbyPage() {
         wordStore.init();
 
         ws.messages$.subscribe((msg: any) => {
-            switch (msg.event) {
-                case 'state.game-phase':
-                    router.push('/game') // TODO: put all the instance-specific pages on the same sub-page. Prevent routing
+            if (msg.phase !== 'lobby') {
+                router.push('/game') // TODO: put all the instance-specific pages on the same sub-page. Prevent routing
             }
         });
     }
 
-    function joinTeam(i: number) {
+    async function joinTeam(i: number) {
+        await axios.request({
+            method: 'POST',
+            url: `${HTTP_URL}/games/${gameId}/event`,
+            data: {
+                name: 'player-joined',
+                timestamp: new Date(Date.now()).toISOString(),
+                payload: {
+                    playerId: '1111',
+                    playerName: 'alice'
+                }
+            },
+        })
+
         ws.send(JSON.stringify({
             event: 'request.join-team',
             payload: {

@@ -6,6 +6,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/bensivo/salad-bowl/service/pkg/log"
 	"github.com/bensivo/salad-bowl/service/pkg/util"
 )
 
@@ -139,6 +140,7 @@ func (svc *service) RegisterListener(ID string, listener GameListener) error {
 	// Find the game related to this event
 	game, err := svc.GetOne(ID)
 	if err != nil {
+		log.Infof("Error getting game: %v\n", err)
 		return fmt.Errorf("failed fetching game %s for event: %v", ID, err)
 	}
 

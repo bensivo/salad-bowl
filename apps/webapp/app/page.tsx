@@ -12,7 +12,7 @@ import './page.css';
 import ws from '@/services/ws';
 
 export default function HomePage() {
-    const router  = useRouter();
+    const router = useRouter();
     const [joinCode, setJoinCode] = useState('');
 
     useEffect(() => {
@@ -30,13 +30,13 @@ export default function HomePage() {
         wordStore.reset();
 
         const res = await axios.request({
-            method: 'post',
-            url: `${HTTP_URL}/game`,
+            method: 'POST',
+            url: `${HTTP_URL}/games`,
         })
 
         // TODO: error notification on failure
 
-        const gameId = res.data.gameId;
+        const gameId = res.data.id;
         sessionStorage.setItem('gameId', gameId);
         router.push('/game')
     }

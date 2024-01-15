@@ -29,14 +29,10 @@ export class GameStore {
         this.initialized = true;
 
         ws.messages$.subscribe((msg: any) => {
-            switch (msg.event) {
-                case 'state.game-phase':
-                    this.store.update(s => ({
-                        ...s,
-                        phase: msg.payload.phase,
-                    }));
-                    break;
-            }
+            this.store.update(s => ({
+                ...s,
+                phase: msg.phase
+            }));
         });
     }
 

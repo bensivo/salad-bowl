@@ -11,9 +11,9 @@ import (
 	"github.com/bensivo/salad-bowl/service/pkg/game/db"
 	"github.com/bensivo/salad-bowl/service/pkg/game/listener"
 	"github.com/bensivo/salad-bowl/service/pkg/log"
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/rs/cors"
 )
 
 var upgrader websocket.Upgrader = websocket.Upgrader{
@@ -158,7 +158,7 @@ func StartHttpGameService(gameService game.GameService) {
 	}).
 		Methods("POST")
 
-	r.HandleFunc("/game/{id}/connect", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/games/{id}/connect", func(w http.ResponseWriter, r *http.Request) {
 		logHTTP(r)
 		id, ok := mux.Vars(r)["id"]
 		if !ok {
@@ -173,16 +173,21 @@ func StartHttpGameService(gameService game.GameService) {
 			return
 		}
 
+		log.Infof("Connected to client %s\n", conn.LocalAddr())
+
 		// Register the websocket listener with the gameService, so it receives game updates
 		websocketGameListener := &listener.WebSocketGameListener{
 			Conn: conn,
 		}
 		gameService.RegisterListener(id, websocketGameListener)
+	})
 
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"},
 	})
 
 	log.Info("Starting websocket server at port 8080")
-	err := http.ListenAndServe(":8080", handlers.CORS()(r))
+	err := http.ListenAndServe(":8080", c.Handler(r))
 	if err != nil {
 		log.Infof("Failed to start server: %v\n", err)
 	}
