@@ -29,7 +29,6 @@ tasks:
       - npx jest
 
   e2e-docker:
-    desc: Run the app and e2e test suite in docker containers
     cmds:
       - defer: docker rm -f saladbowl-service
       - defer: docker rm -f saladbowl-service-e2e

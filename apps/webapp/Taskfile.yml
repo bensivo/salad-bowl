@@ -1,14 +1,28 @@
 version: '3'
 
 tasks:
-  install: 
+  install:
     cmds:
       - npm i
 
-  build: 
+  build:
+    sources:
+      - ./src/**/*
+      - ./node_modules/**/*
+      - ./package*.json
+    generates:
+      - ./dist/**/*
     cmds:
-      - npm run build
-
-  dev: 
+      - npm run build 
+  
+  dev:
     cmds:
       - npm run dev
+
+  test:
+    cmds:
+      - echo 'TODO'
+
+  e2e:
+    cmds:
+      - echo 'TODO'
