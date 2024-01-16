@@ -1,50 +1,51 @@
-import { EnhancedStore, configureStore } from '@reduxjs/toolkit';
+import { configureStore } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { gamesActions, gamesReducer, gamesThunks } from './games-slice';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { gamesActions, gamesReducer } from './games-slice';
 
 vi.mock('axios');
 
 describe('games slice', () => {
-    let store: EnhancedStore<any, any, any>;
-    let stateListener: (a: any) => void;
 
-    beforeEach(() => {
-        store = configureStore({
+    const createMockStore = () => {
+        const store = configureStore({
             reducer: {
                 games: gamesReducer,
             },
         });
 
-        // Mock function that gets called with every state update
-        stateListener = vi.fn();
+        const listener = vi.fn(); // Mock function that gets called with every state update
         store.subscribe(() => {
-            stateListener(store.getState())
+            listener(store.getState())
         });
-    })
-    // Mock store that only has a games reducer
+
+        return {
+            store,
+            listener,
+        }
+    }
 
     afterEach(() => {
         vi.resetAllMocks();
     });
 
-
     describe('fetchGames', () => {
         it('should toggle loading appropriately', async () => {
+            const { store, listener } = createMockStore();
             vi.mocked(axios.request).mockResolvedValue({
                 data: []
             });
 
-            await store.dispatch(gamesThunks.fetchGames());
-            expect(stateListener).toHaveBeenCalledWith({
+            await store.dispatch(gamesActions.fetchGames(null));
+            expect(listener).toHaveBeenCalledWith({
                 games: {
                     loading: true,
                     games: [],
                     error: null,
                 }
             });
-            
-            expect(stateListener).toHaveBeenCalledWith({
+
+            expect(listener).toHaveBeenCalledWith({
                 games: {
                     loading: false,
                     games: [],
@@ -53,6 +54,7 @@ describe('games slice', () => {
             });
         });
         it('should set HTTP response in state', async () => {
+            const { store, listener } = createMockStore();
             const games = [
                 {
                     id: 'asdf'
@@ -63,7 +65,7 @@ describe('games slice', () => {
             });
 
             await store.dispatch(gamesActions.fetchGames(null));
-            expect(stateListener).toHaveBeenCalledWith({
+            expect(listener).toHaveBeenCalledWith({
                 games: {
                     loading: true,
                     games: [],
@@ -76,6 +78,8 @@ describe('games slice', () => {
         });
 
         it('should set error response if needed', async () => {
+            const { store } = createMockStore();
+
             const error = new Error('asdf');
             vi.mocked(axios.request).mockRejectedValue(error);
 

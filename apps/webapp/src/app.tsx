@@ -1,7 +1,7 @@
 import './app.less';
 import { Homepage } from './pages/homepage';
 import { useAppSelector } from './store/hooks';
-import { routeSelectors } from './store/slices/route';
+import { routeSelectors } from './store/slices/route/route-slice';
 
 function App() {
   const route = useAppSelector(routeSelectors.route);

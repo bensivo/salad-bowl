@@ -1,4 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { createAppSlice } from "../../utils";
 
 
 export interface RouteState {
@@ -9,7 +10,7 @@ const initialState: RouteState = {
     route: '',
 };
 
-export const routeSlice = createSlice({
+export const routeSlice = createAppSlice({
     name: 'route',
     initialState,
     
@@ -18,11 +19,11 @@ export const routeSlice = createSlice({
      * (name and type are inferred from the reducer function definition). And how the state
      * updates in response to those actions.
      */
-    reducers: {
-        setRoute: (state: RouteState, action: PayloadAction<string>) => {
+    reducers: (create) => ({
+        setRoute: create.reducer((state: RouteState, action: PayloadAction<string>) => {
             state.route = action.payload
-        }
-    },
+        }),
+    }),
 
     /**
      * Selectors define values that can be read from this slice, using the hook 'useAppSelector'.

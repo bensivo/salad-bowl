@@ -1,7 +1,6 @@
 import axios from "axios";
 import { createAppSlice } from "../../utils";
 import { Game } from "./games.interface";
-import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export interface GamesState {
     loading: boolean;
@@ -27,6 +26,8 @@ export const gamesSlice = createAppSlice({
     reducers: (create) => ({
         fetchGames: create.asyncThunk(
             async () => { // TODO: fix typing once this MR is released: https://github.com/reduxjs/redux-toolkit/issues/4060
+                
+                await new Promise((resolve) => setTimeout(resolve, Math.random() * 500));
                 const res = await axios.request({
                     method: 'GET',
                     url: 'http://localhost:8080/games',
@@ -51,44 +52,16 @@ export const gamesSlice = createAppSlice({
         ),
     }),
 
-    extraReducers: (builder) => {
-
-        builder.addCase(gamesThunks.fetchGames.pending, (state) => {
-            state.loading = true;
-        });
-        builder.addCase(gamesThunks.fetchGames.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload ?? action.error;
-        });
-        builder.addCase(gamesThunks.fetchGames.fulfilled, (state, action) => {
-            state.loading = false;
-            state.games = action.payload;
-        });
-    },
-
     // /**
     //  * Selectors define values that can be read from this slice, using the hook 'useAppSelector'.
     //  * 
     //  * NOTE: selectors defined here can only access data from this slice. It is also possible to create
     //  * selectors with the function 'createSelector()', to access the entire store.
     //  */
-    // selectors: {
-    // }
+    selectors: {
+        games: s => s.games,
+    }
 });
-
-export const gamesThunks = {
-    fetchGames: createAsyncThunk(
-        'users/fetchGames',
-        async () => {
-            const res = await axios.request({
-                method: 'GET',
-                url: 'http://localhost:8080/games',
-            });
-
-            return res.data as any[]; // TODO: interface for games
-        }
-    )
-}
 
 export const gamesActions = gamesSlice.actions;
 export const gamesSelectors = gamesSlice.selectors;

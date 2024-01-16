@@ -17,11 +17,20 @@ tasks:
 
   dev:
     cmds:
-      - npm run dev
+      - npx vite --open
 
   test:
     cmds:
-      - npm run test 
+      - npx vitest run
+
+  test-watch:
+    cmds:
+      - npx vitest watch
+
+  test-cover:
+    cmds:
+      - npx vitest run --coverage
+      - open ./coverage/index.html
   e2e:
     cmds:
       - echo 'TODO'

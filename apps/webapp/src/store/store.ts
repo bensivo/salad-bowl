@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { gamesReducer } from './slices/games/games-slice';
-import { routeReducer } from './slices/route';
+import { routeReducer } from './slices/route/route-slice';
 
 
 export const store = configureStore({
