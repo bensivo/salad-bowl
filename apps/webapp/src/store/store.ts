@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { counterReducer } from './slices/counter';
+import { gamesReducer } from './slices/games/games-slice';
+import { routeReducer } from './slices/route';
 
 
 export const store = configureStore({
     reducer: { 
-        counter: counterReducer 
+        route: routeReducer,
+        games: gamesReducer,
     },
     devTools: true,
 });

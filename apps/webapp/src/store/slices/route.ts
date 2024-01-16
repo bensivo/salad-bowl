@@ -1,16 +1,16 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 
-export interface CounterState {
-    count: number;
+export interface RouteState {
+    route: string;
 }
 
-const initialState: CounterState = {
-    count: 0,
+const initialState: RouteState = {
+    route: '',
 };
 
-export const counterSlice = createSlice({
-    name: 'counter',
+export const routeSlice = createSlice({
+    name: 'route',
     initialState,
     
     /**
@@ -19,8 +19,8 @@ export const counterSlice = createSlice({
      * updates in response to those actions.
      */
     reducers: {
-        incrementBy: (state: CounterState, action: PayloadAction<number>) => {
-            state.count += action.payload
+        setRoute: (state: RouteState, action: PayloadAction<string>) => {
+            state.route = action.payload
         }
     },
 
@@ -31,10 +31,10 @@ export const counterSlice = createSlice({
      * selectors with the function 'createSelector()', to access the entire store.
      */
     selectors: {
-        count: (state) => state.count,
+        route: s => s.route,
     }
 });
 
-export const counterActions = counterSlice.actions;
-export const counterSelectors = counterSlice.selectors;
-export const counterReducer = counterSlice.reducer;
+export const routeActions = routeSlice.actions;
+export const routeSelectors = routeSlice.selectors;
+export const routeReducer = routeSlice.reducer;

@@ -14,15 +14,14 @@ tasks:
       - ./dist/**/*
     cmds:
       - npm run build 
-  
+
   dev:
     cmds:
       - npm run dev
 
   test:
     cmds:
-      - echo 'TODO'
-
+      - npm run test 
   e2e:
     cmds:
       - echo 'TODO'
